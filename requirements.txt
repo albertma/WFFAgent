@@ -1,0 +1,13 @@
+# requirements.txt
+requests  # API调用
+yfinance  # 雅虎金融数据
+pandas     # 数据处理
+langchain  # LLM框架
+fastmcp  # FastMCP
+fastapi
+mcp[cli]
+langchain-mcp
+langchain-core
+langchain-groq
+openai
+
