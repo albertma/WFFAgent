@@ -5,6 +5,7 @@ import json
 import financial_indicators as fi
 from typing import Dict, Any
 import logging
+import asyncio
 
 logging.basicConfig(level=logging.DEBUG)
 mcp = FastMCP("FinancialAnalyst")
@@ -64,17 +65,16 @@ async def get_management_discussion(symbol:str) -> str:
         print(f"获取到的管理层讨论: {content}")
         return content
 
-def main():
+async def main():
     # 运行FastMCP
     
-    indicators = analyze_financials("AAPL", 199.00)
-    print(f"计算出的财务指标: {indicators}")
+    content = await get_management_discussion("AAPL")
+    print(f"计算出的财务指标: {content}")
     
 if __name__ == "__main__":
     # 运行FastMCP
     mcp.run()
-   
-   #asyncio.run(main)
+    #asyncio.run(main())
    
    
     
