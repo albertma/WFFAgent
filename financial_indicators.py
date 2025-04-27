@@ -1,6 +1,7 @@
 
 # -*- coding: utf-8 -*-
 import logging
+import agent_utils
 logging.basicConfig(level=logging.DEBUG)
 
 def _growth_rate(current: str, previous: str) -> dict:
@@ -27,15 +28,6 @@ def _substract(a: str, b: str) -> dict:
         return 0.0
     else:
         return int(a) - int(b)
-
-def _divide(a: str, b: str) -> dict:
-    """计算除法"""
-    if a == "None" or b == "None":
-        return 0.0
-    elif int(b) == 0:
-        return 0.0
-    else:
-        return round(int(a) / int(b), 4)
 # 解析财报数据
 # 这里假设数据已经被解析为字典格式
 # 例如：
@@ -158,7 +150,7 @@ data =
       }
     }
 """  
-def calculate_financial_indicators(data: dict, stock_price:float, discount_rate:float=0.06, growth_rate:float=0.02) -> dict:
+def calculate_financial_indicators(data: dict, stock_price:float, discount_rate:float=0.09, growth_rate:float=0.01) -> dict:
     logging.debug("calculate_financial_indicators")
     annual_balance_sheet = data["balanceSheet"]["annualReports"]
     annual_income_statement = data["incomeStatement"]["annualReports"]
@@ -175,7 +167,7 @@ def calculate_financial_indicators(data: dict, stock_price:float, discount_rate:
     quarterly_indicators = _calculate_financial_ratios(
         quarterly_balance_sheet, quarterly_income_statement, quarterly_cashflow_statement, stock_price, annual=False
     )
-    logging.debug("calc fcf valuation")
+    logging.debug("calculate fcf valuation")
     # 计算最近3年的free cash flow平均增长率
     free_cash_flow = [
         _substract(annual_cashflow_statement[i]["operatingCashflow"], annual_cashflow_statement[i]["capitalExpenditures"])
@@ -186,7 +178,7 @@ def calculate_financial_indicators(data: dict, stock_price:float, discount_rate:
         for i in range(len(free_cash_flow) - 1)
     ]
     average_growth_rate = round(sum(free_cash_flow_growth) / len(free_cash_flow_growth),2)
-    logging.debug(f"average_growth_rate: {average_growth_rate}")
+    logging.debug(f"Average_growth_rate: {average_growth_rate}")
     # 根据最近3年的free cash flow平均增长率计算未来5年的自由现金流
     future_free_cash_flow = []
     for i in range(5):
@@ -239,7 +231,7 @@ def _calculate_financial_ratios(balance_sheet:dict, income_statement:dict, cashf
     length = min(len(balance_sheet), len(income_statement))
     length = min(length, len(cashflow_statement))
     if annual:
-        length = min(5, length)
+        length = min(6, length)
     else:
         length = min(6, length)
     # 计算财务指标
@@ -286,7 +278,7 @@ def _calculate_financial_ratios(balance_sheet:dict, income_statement:dict, cashf
     # 资产负债率，流动比率，速动比率
     logging.debug(f"calc debt ratio")
     debt_ratio = [_calculate_ratios(balance_sheet[i]["totalLiabilities"], balance_sheet[i]["totalAssets"]) for i in range(length)]
-    current_ratio = _divide(balance_sheet[0]["totalCurrentAssets"], balance_sheet[0]["totalCurrentLiabilities"])
+    current_ratio = _calculate_ratios(balance_sheet[0]["totalCurrentAssets"], balance_sheet[0]["totalCurrentLiabilities"])
     quick_ratio = _calculate_ratios(
         _substract(balance_sheet[0]["totalCurrentAssets"], balance_sheet[0]["inventory"]),
         balance_sheet[0]["totalCurrentLiabilities"]
@@ -338,4 +330,13 @@ def _calculate_financial_ratios(balance_sheet:dict, income_statement:dict, cashf
         "pb_ttm": pb_ratio,
     }
     
-    
+if __name__ == '__main__':
+    balance_sheet = agent_utils.read_json(r"./AAPL&BALANCE_SHEET.json")
+    income_statement = agent_utils.read_json(r"./AAPL&INCOME_STATEMENT.json")
+    cashflow = agent_utils.read_json(r"./AAPL&CASH_FLOW.json")
+    reports =  {
+        "balanceSheet": balance_sheet, 
+        "incomeStatement": income_statement,
+        "cashflow": cashflow
+        }
+    result = calculate_financial_indicators(reports, 206)

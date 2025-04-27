@@ -1,13 +1,18 @@
 ## An Financial Report Analysis Agent named *Work For Fun Agent*
 
+### Functions
+
 MCP Server
 
-- Get stock price from Intenet
+- Get stock price from Internet, for Chinese user need to go over ***GFW***
 - Get financial reports from ALPHA VANTAGE and calculate the indicators
 - Get memo of CEO's talking to public audiences.
 
-This is sample result:
+AgentClient
 
+
+
+## Sample result:
 
 ### Apple Inc. (AAPL) 财务分析报告
 
