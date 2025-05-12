@@ -3,7 +3,7 @@ import gradio as gr
 from agent_client import run_agent
 from agent_client import session_state
 from fastapi import Response
-import agent_utils
+import utils.agent_utils as agent_utils
 
 api_app = FastAPI()  # 必须定义 ASGI 应用实例
 

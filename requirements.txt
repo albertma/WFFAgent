@@ -11,3 +11,5 @@ langchain-core
 langchain-groq
 openai
 gradio~=5.27.0
+akshare
+langflow
