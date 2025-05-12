@@ -415,7 +415,7 @@ def get_usa_interest_rate() -> pd.DataFrame:
     macro_bank_usa_interest_rate_df.sort_values(by="日期", inplace=True, ascending=False)
     macro_bank_usa_interest_rate_df = macro_bank_usa_interest_rate_df.head(5)
     return macro_bank_usa_interest_rate_df
-def get_global_index()-> pd.DateFrame:
+def get_global_index()-> pd.DataFrame:
     """
     获取全球指数
     """
