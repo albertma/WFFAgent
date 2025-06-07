@@ -1,0 +1,10 @@
+Metadata-Version: 2.2
+Name: wff_agent
+Version: 0.1
+License-File: LICENSE
+Requires-Dist: fastmcp
+Requires-Dist: akshare
+Requires-Dist: pandas
+Requires-Dist: numpy
+Requires-Dist: requests
+Dynamic: requires-dist

@@ -1,0 +1,5 @@
+fastmcp
+akshare
+pandas
+numpy
+requests
