@@ -2,6 +2,7 @@
 import asyncio
 from datetime import datetime
 import logging
+from logging.handlers import TimedRotatingFileHandler
 import os
 from typing import Dict, Any
 
@@ -14,10 +15,14 @@ from wff_agent.stock_agents import GlobalMarketAnalysisAgent
 from wff_agent.stock_analysis_workflow import StockAnalysisWorkflow
 from wff_agent.utils.stock_utils import is_valid_symbol
 # 配置日志
+log_file = 'wff_agent.log'
+handler = TimedRotatingFileHandler(
+    log_file, when='midnight', interval=1, backupCount=7, encoding='utf-8'
+)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-handler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 log.addHandler(handler)
 # 环境变量
 api_key = os.getenv("DEEPSEEK_API_KEY")
