@@ -93,6 +93,7 @@ def calc_us_indicators(data: dict, stock_price:float = 100, discount_rate:float=
     else:
         return {
             "annual_fin_ratios": annual_indicators,
+            "quarter_fin_ratios": quarterly_indicators,
             "fcf_analysis": fcf_valuation_result,
         }
 
