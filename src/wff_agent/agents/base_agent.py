@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 from typing import Any, Dict, List
 from abc import ABC, abstractmethod
@@ -11,7 +12,7 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 log = logging.getLogger(__name__)
-
+import os
 class AnalysisAgent(ABC):
     """基础 Agent 类，提供基本的 Agent 功能"""
     
@@ -25,6 +26,8 @@ class AnalysisAgent(ABC):
         self.llm = self._create_llm(base_url, api_key, 
                                     model, temperature, 
                                     max_tokens)
+        self.name = self.__class__.__name__
+        self.system_prompt = self.get_system_prompt()
         
     def _create_llm(self, base_url:str, api_key:str, model:str, 
                     temperature:float, max_tokens:int) -> ChatOpenAI:
@@ -102,7 +105,11 @@ class AnalysisAgent(ABC):
         """
         server_params = StdioServerParameters(
             command="python",
-            args=["-m", "wff_agent.mcp_server"]
+            args=["-m", "wff_agent.mcp_server"],
+            env={
+                "NEWS_API_KEY": os.getenv("NEWS_API_KEY"),
+                "ALPHA_VANTAGE_API_KEY": os.getenv("ALPHA_VANTAGE_API_KEY")
+            }
         )
         
         try:
@@ -112,15 +119,18 @@ class AnalysisAgent(ABC):
                     await session.initialize()
                     log.info("Attaching session to toolkit...")
                     toolkit = self.create_toolkit(session)
-                    log.info("Initializing toolkit...")
+                    log.info(f"Initializing toolkit")
                     await toolkit.initialize()
                     log.info(f"System prompt:{system_prompt}")
                     agent_executor = self.create_agent_executor(toolkit=toolkit, 
                                                                 system_prompt=system_prompt, 
                                                                 user_message_prompt=user_message_prompt)
                     log.info(f"Created agent executor: {self.__class__.__name__}, invoke executor with input: {input}")
+                    time_start = datetime.now()
                     content = await agent_executor.ainvoke(input=input)
-                    return content['output']
+                    elapsed = datetime.now() - time_start
+                    log.info(f"Agent executing time: {elapsed} seconds")
+                    return content['output'] + f"\nAgent executing time: {elapsed} seconds"
         except Exception as e:
             log.error(f"运行 agent 失败: {str(e)}", exc_info=True)
             raise e
@@ -131,6 +141,11 @@ class AnalysisAgent(ABC):
         pass
     
     @abstractmethod
+    def after_ai_execute(self, result:str, input:Dict[str, Any]):
+        """AI 执行后处理"""
+        pass
+    
+    @abstractmethod
     def get_user_prompt(self, input:Dict[str, Any], context:Dict[str, Any]) -> str:
         """获取用户提示"""
         pass
@@ -138,4 +153,9 @@ class AnalysisAgent(ABC):
     @abstractmethod
     def get_output_file_name(self, input:Dict[str, Any]) -> str:
         """获取输出文件名"""
+        pass
+
+    @abstractmethod
+    def get_system_prompt(self) -> str:
+        """获取系统提示"""
         pass

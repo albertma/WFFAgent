@@ -1,10 +1,13 @@
 SystemStockAnalysisPrompt = """
-你是一个专业的市场分析师，擅长根据股票市场数据，财务数据，管理层言论和新闻，预测股票走势。
+你是一个专业的市场分析师，擅长根据股票市场数据，财务数据，新闻，全球市场数据，宏观经济数据，预测股票走势。
+
+【分析流程】
 1.基本面分析：基于股票财务数据
 2.技术分析：基于股票价格，交易量和技术指标
 3.情绪分析：基于股票市场情绪指标
-4.宏观分析：基于宏观经济指标
-5.综合分析：综上所述，给出未来一周的股票走势预测（上涨、下跌，震荡），操作建议（买入、卖出、持有）
+4.全球市场分析：基于全球市场数据
+5.宏观分析：基于宏观经济指标
+6.综合分析：综上所述，给出未来一周的股票走势预测（上涨、下跌，震荡），操作建议（买入、卖出、持有）
 """
 
 TechnicalAnalysisPrompt = """
@@ -82,10 +85,8 @@ FundamentalAnalysisPrompt = """
     报告格式: markdown
     
 【基本面分析流程】
-1. 调用工具序列:
-   - AnalyzeFinancialReport(symbol='{symbol}', market='{market}', stock_price= {stock_price}, 
-        discount_rate={discount_rate}, growth_rate={growth_rate}, total_shares={total_shares})请将获取的JSON数据转换为易读的格式，然后进行分析。
-
+1. 财务数据如下:
+   {fin_ratios}
 2. 分析财务指标:
    - 财务指标同比波动>=30%需标注；
    - 关键比率超出行业均值±2σ需预警；
@@ -117,18 +118,23 @@ FundamentalAnalysisPrompt = """
 NewsAnalysisPrompt = """
 【新闻情绪分析流程】
 1. 调用工具序列:
-   - GetSentiment(symbol='{symbol}', market='{market}') 请将获取的JSON数据转换为易读的格式，然后进行分析
-   - GetGlobalMarketIndicators() 请将获取的JSON数据转换为易读的格式，然后进行分析
+   - GetStockSentiment(symbol='{symbol}', market='{market}') 请将获取的JSON数据转换为易读的格式，然后进行分析
 2. 分析数据并生成报告:
    根据新闻内容，给出新闻对股票的影响，包括正面影响和负面影响
-   根据全球市场指标，给出全球市场对股票的影响，包括正面影响和负面影响
 """
 
+GlobalMarketAnalysisPrompt = """
+【全球市场分析流程】
+1. 调用工具序列:
+   - GetGlobalMarketIndicators() 请将获取的JSON数据转换为易读的格式，然后进行分析
+2. 分析数据并生成报告:
+   根据全球市场指标，给出全球市场对股票的影响，包括正面影响和负面影响
+"""
 
 MacroAnalysisPrompt = """
 【宏观分析流程】
 1. 调用工具序列:
-   - GetMacroData(symbol='{symbol}', market='{market}') 请将获取的JSON数据转换为易读的格式，然后进行分析
+   - GetMacroData() 请将获取的JSON数据转换为易读的格式，然后进行分析
 
 2. 分析数据并生成报告:
    ▶ 宏观分析：
@@ -141,9 +147,11 @@ ComprehensiveAnalysisPrompt = """
 技术面分析：{technical_analysis}
 基本面分析：{fundamental_analysis}
 新闻分析：{news_analysis}
+全球市场分析：{global_market_analysis}
+
 
 【综合决策】
-要求：注明当前股票价格:{stock_price}，股票代码:{symbol}，股票市场:{market}, 日期
+要求：注明当前股票价格:{stock_price}，股票代码:{symbol}，股票市场:{market}, 日期:{date}
 1. 多因子权重分配：
    技术面 50%（趋势30%+动量20%）
    基本面 30%（估值20%+质量10%）

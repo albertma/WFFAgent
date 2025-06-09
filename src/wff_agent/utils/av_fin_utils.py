@@ -67,11 +67,11 @@ def calc_us_indicators(data: dict, stock_price:float = 100, discount_rate:float=
         for i in range(len(annual_cashflow_statement))
     ]
     free_cash_flow_growth = [
-        _growth_rate(free_cash_flow[i], free_cash_flow[i + 1])
-        for i in range(len(free_cash_flow) - 1)
+        _growth_rate(free_cash_flow[i], free_cash_flow[i + 1]) for i in range(len(free_cash_flow) - 1)
     ]
     average_growth_rate = round(sum(free_cash_flow_growth) / len(free_cash_flow_growth),2)
-    log.debug(f"Average_growth_rate: {average_growth_rate}")
+    log.info(f"Average free cash flow growth rate: {average_growth_rate}")
+    
     # 根据最近3年的free cash flow平均增长率计算未来5年的自由现金流
     # 计算未来5年的自由现金流折现值
     # discount_rate = 0.1  # 假设折现率为10%
@@ -80,17 +80,21 @@ def calc_us_indicators(data: dict, stock_price:float = 100, discount_rate:float=
     log.debug(f"shares_num: {shares_num}")
     
     fcf_valuation_result = fcf_valuation.free_cash_flow_valuation(
-        latest_fcf=free_cash_flow[0],
-        recent_3_yr_fcf_avg_growth=average_growth_rate,
-        discount_rate=discount_rate,
-        growth_rate=growth_rate,
-        shares_num=shares_num
+        free_cash_flow[0],
+        average_growth_rate,
+        discount_rate,
+        growth_rate,
+        shares_num
     )
-    
-    return {
-        "annual": annual_indicators,
-        "fcf_valuation": fcf_valuation_result,
-    }
+    if fcf_valuation_result is None:
+        return {
+            'annual_fin_ratios': annual_indicators
+        }
+    else:
+        return {
+            "annual_fin_ratios": annual_indicators,
+            "fcf_analysis": fcf_valuation_result,
+        }
 
 def _calculate_financial_ratios(balance_sheet:list, income_statement:list, cashflow_statement:list, stock_price:float, annual:bool) -> dict:
     """计算财务比率"""

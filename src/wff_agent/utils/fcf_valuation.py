@@ -15,21 +15,15 @@ def free_cash_flow_valuation(latest_fcf:int, recent_3_yr_fcf_avg_growth:float,
         Returns:
             dict: 自由现金流折现估值
     """
-    
+    log.info(f"DCF估值参数: latest_fcf: {latest_fcf}, recent_3_yr_fcf_avg_growth: {recent_3_yr_fcf_avg_growth}, discount_rate: {discount_rate}, growth_rate: {growth_rate}, shares_num: {shares_num}")
     if shares_num == 0 or shares_num == "None":
         print("股票数量为0")
-        return 0.0
-    
-        # 计算未来5年现金流
-    # future_5_yr_fcf = []
-    # for i in range(5):
-    #     if i == 0:
-    #         future_5_yr_fcf.append(latest_fcf * (1 + recent_3_yr_fcf_avg_growth))
-    #     else:
-    #         future_5_yr_fcf.append(future_5_yr_fcf[i - 1] * (1 + recent_3_yr_fcf_avg_growth))
-    log.debug(f"latest_fcf: {latest_fcf}, recent_3_yr_fcf_avg_growth: {recent_3_yr_fcf_avg_growth}")
+        return None
+    if recent_3_yr_fcf_avg_growth < 0:
+        return None
+    # 计算未来5年现金流
     future_5_yr_fcf = [latest_fcf*(1+recent_3_yr_fcf_avg_growth)**(i+1) for i in range(5)]
-        # 计算未来5年现金流折现值
+    # 计算未来5年现金流折现值
     log.debug(f"to calc future_5_yr_discounted_fcf: {future_5_yr_fcf}")
     future_5_yr_discounted_fcf = [future_5_yr_fcf[i]/(1+discount_rate)**(i+1) for i in range(5)]
     future_5_yr_discounted_fcf_sum = sum(future_5_yr_discounted_fcf)
@@ -43,6 +37,7 @@ def free_cash_flow_valuation(latest_fcf:int, recent_3_yr_fcf_avg_growth:float,
     present_value = future_5_yr_discounted_fcf_sum + terminal_value_discounted
     log.debug(f"to return: present_value: {present_value}, shares_num: {shares_num}")
     return {
+        "latest_fcf": latest_fcf,
         "recent_3_yr_fcf_avg_growth": recent_3_yr_fcf_avg_growth,
         "present_value": present_value,
         "future_5_yr_fcf": future_5_yr_fcf,

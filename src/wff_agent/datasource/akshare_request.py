@@ -291,9 +291,6 @@ def get_cn_bid_ask_stock(symbol: str) -> dict:
     stock_bid_ask_em_df = ak.stock_bid_ask_em(symbol=symbol)
     return stock_bid_ask_em_df
 
-def get_cn_index_spot() -> dict:
-    stock_zh_index_spot_sina_df = ak.stock_zh_index_spot_sina()
-    return stock_zh_index_spot_sina_df
 
 def is_valid_us_stock_symbols(symbol:str) -> bool:
     symbol_list = _get_us_stock_symbol()
@@ -374,7 +371,27 @@ def get_global_financial_news() -> pd.DataFrame:
     stock_info_global_futu_df = ak.stock_info_global_futu()
     return stock_info_global_futu_df
 
-def get_us_cpi(symbol: str) -> pd.DataFrame:
+
+def get_cn_ppi() -> pd.DataFrame:
+    macro_china_ppi_yearly_df = ak.macro_china_ppi_yearly()
+    macro_china_ppi_yearly_df.sort_values(by="日期", inplace=True, ascending=False)
+    macro_china_ppi_yearly_df = macro_china_ppi_yearly_df.head(12)
+    return macro_china_ppi_yearly_df
+
+def get_cn_cpi() -> pd.DataFrame:
+    macro_china_cpi_yearly_df = ak.macro_china_cpi_yearly()
+    macro_china_cpi_yearly_df.sort_values(by="日期", inplace=True, ascending=False)
+    macro_china_cpi_yearly_df = macro_china_cpi_yearly_df.head(12)
+    return macro_china_cpi_yearly_df
+
+def get_cn_cx_pmi() -> pd.DataFrame:
+    macro_china_cx_services_pmi_yearly_df = ak.macro_china_cx_services_pmi_yearly()
+    macro_china_cx_services_pmi_yearly_df.sort_values(by="日期", inplace=True, ascending=False)
+    macro_china_cx_services_pmi_yearly_df = macro_china_cx_services_pmi_yearly_df.head(12)
+    return macro_china_cx_services_pmi_yearly_df
+
+
+def get_us_cpi() -> pd.DataFrame:
     """
     获取美国CPI数据
             商品        日期   今值  预测值   前值
@@ -398,7 +415,7 @@ def get_labor_index() -> pd.DataFrame:
 2   美联储劳动力市场状况指数  2014-12-08  2.9  NaN  3.9
 3   美联储劳动力市场状况指数  2015-01-12  6.1  NaN  5.5
     """
-    macro_usa_labor_df = ak.macro_usa_labor()
+    macro_usa_labor_df = ak.macro_usa_lmci()
     macro_usa_labor_df.sort_values(by="日期", inplace=True, ascending=False)
     macro_usa_labor_df = macro_usa_labor_df.head(5)
     return macro_usa_labor_df
@@ -417,6 +434,7 @@ def get_usa_interest_rate() -> pd.DataFrame:
     macro_bank_usa_interest_rate_df.sort_values(by="日期", inplace=True, ascending=False)
     macro_bank_usa_interest_rate_df = macro_bank_usa_interest_rate_df.head(5)
     return macro_bank_usa_interest_rate_df
+
 def get_global_index()-> pd.DataFrame:
     """
     获取全球指数
@@ -451,14 +469,14 @@ if __name__ == "__main__":
     # df = get_stock_history(symbol="01810", market="hk", period="daily")
     # print(df)
     # df = _get_us_stock_code_symbol()
-    reports = get_stock_financial_report_cn("603160")
-    #print(reports)
-    print(reports["balance_sheet"].head(2).to_json(force_ascii=False ,orient="records"))
-    print(reports["income_statement"].head(20).to_json(force_ascii=False ,orient="records"))
-    print(reports["cashflow"].head(2).to_json(force_ascii=False ,orient="records"))
-    print(reports["quarter_balance_sheet"].head(2).to_json(force_ascii=False ,orient="records"))
-    print(reports["quarter_income_statement"].head(2).to_json(force_ascii=False ,orient="records"))
-    print(reports["quarter_cashflow"].head(2).to_json(force_ascii=False ,orient="records"))
+    # reports = get_stock_financial_report_cn("603160")
+    # #print(reports)
+    # print(reports["balance_sheet"].head(2).to_json(force_ascii=False ,orient="records"))
+    # print(reports["income_statement"].head(20).to_json(force_ascii=False ,orient="records"))
+    # print(reports["cashflow"].head(2).to_json(force_ascii=False ,orient="records"))
+    # print(reports["quarter_balance_sheet"].head(2).to_json(force_ascii=False ,orient="records"))
+    # print(reports["quarter_income_statement"].head(2).to_json(force_ascii=False ,orient="records"))
+    # print(reports["quarter_cashflow"].head(2).to_json(force_ascii=False ,orient="records"))
     
     # stock_market_activity_legu_df = ak.stock_market_activity_legu()
     # print(stock_market_activity_legu_df)
@@ -476,6 +494,8 @@ if __name__ == "__main__":
     # print(json.dumps(data, ensure_ascii=False))
     
     #print(stock_financial_hk_report_em_df.head(5).to_json(force_ascii=False, orient="records"))
-    
+    data = get_usa_interest_rate()
+    print(data)
+
    
     

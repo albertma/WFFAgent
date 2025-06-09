@@ -3,8 +3,9 @@ import logging
 import pandas as pd
 from typing import Any, Dict, List
 
-from wff_agent.datasource import akshare_request as ak_request
+from wff_agent.datasource import akshare_request as ak_request, news_request
 from wff_agent.datasource import alpha_v_request as av_request
+from wff_agent.datasource import file_lru_cache as lru_cache
 log = logging.getLogger(__name__)
 
 def get_market_indicators(symbol: str, market: str, windows_size:int=50) -> Dict[str, Any]:
@@ -144,7 +145,20 @@ def _get_cn_stock_news(symbol: str) -> List[Dict[str, Any]]:
     except Exception as e:
         log.error(f"获取新闻列表失败: {str(e)}")
         return []
-    
+def _get_us_hk_stock_news(symbol: str, market: str) -> List[Dict[str, Any]]:
+    """
+    获取美国股票新闻
+    """
+    log.info(f"开始获取美国/香港股票新闻: {symbol}")
+    if market == "us":
+        keyword = "美股:" + symbol
+    elif market == "hk":
+        keyword = "港股:" + symbol
+    else:
+        raise ValueError(f"Invalid market: {market}")
+    news = news_request.get_news_from_newapi([keyword], 10)
+    return news
+
 def _get_global_financial_news() -> List[Dict[str, Any]]:
     """
     获取全球股票新闻
@@ -164,7 +178,8 @@ def _get_global_financial_news() -> List[Dict[str, Any]]:
         news_list.append(news)
     return news_list
 
-def get_sentiment(symbol: str, market: str) -> Dict[str, Any]:
+@lru_cache.cached("stock_sentiment", expire_seconds=60*60*24)
+def get_stock_sentiment(symbol: str, market: str) -> List[Dict[str, Any]]:
     """
     获取股票情绪
     """
@@ -174,11 +189,11 @@ def get_sentiment(symbol: str, market: str) -> Dict[str, Any]:
         news = _get_cn_stock_news(symbol)
         return news
     elif market == 'us' or market == 'hk':
-        news = _get_global_financial_news()
+        news = _get_us_hk_stock_news(symbol, market)
         return news
     else:
         raise ValueError(f"Invalid market: {market}")
 
 if __name__ == "__main__":
-    value = get_sentiment("00700", "hk")
+    value = get_stock_sentiment("TSLA", "us")
     print(value)

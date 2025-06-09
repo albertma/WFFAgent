@@ -42,14 +42,13 @@ class Workflow(ABC):
         Returns:
             Dict[str, Any]: 工作流执行结果
         """
-        log.info("开始执行工作流...")
         
         # 设置步骤
         self.setup_steps()
         
         # 执行每个步骤
         for step in self.steps:
-            log.info(f"执行步骤: {step.name}")
+            log.info(f"\n ##########开始执行步骤: {step.name}...")
             try:
                 input_data = step.agent.prepare_input(input_data, self.context)
                 user_prompt = step.agent.get_user_prompt(input_data, self.context)
@@ -59,20 +58,16 @@ class Workflow(ABC):
                     user_message_prompt=user_prompt,
                     input=input_data
                 )
+                
                 self.context[step.name] = {
                     "output": result
                 }
                 step.result = result
                 self.results[step.name] = result
-                log.info(f"\n ##########步骤 {step.name} 执行完成")
-                log.info(f"\n ##########步骤 {step.name} 的输出: {result}")
-                # write result to markdown file
-                output_file_name = step.agent.get_output_file_name(input_data)
-                file_path = "./reports/"
-                if not os.path.exists(file_path):
-                    os.makedirs(file_path)
-                with open("./reports/"+output_file_name, "w") as f:
-                    f.write(result)
+                log.info(f"\n ##########步骤 {step.name} 执行完成, 输出: {result}")
+                step.agent.after_ai_execute(result, input_data)
+                
+                
             except Exception as e:
                 log.error(f"##########步骤 {step.name} 执行失败: {str(e)}", exc_info=True)
             finally:

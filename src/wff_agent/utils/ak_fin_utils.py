@@ -35,14 +35,21 @@ def calc_cn_indicators(data: dict, stock_price:float,
     fin_ratios = _calc_fin_cn_ratio(annual_balance_sheet, annual_income_statement, annual_cash_flow_statement, stock_price)
     quarter_fin_ratios = _calc_fin_cn_ratio(quarter_balance_sheet, quarter_income_statement, quarter_cash_flow_statement, stock_price)
     # 计算自由现金流分析
-    fcf_analysis = fcf_valuation.free_cash_flow_valuation(fin_ratios["free_cash_flow"][-1]  , 
-                                                          np.mean(fin_ratios["free_cash_flow_growth"]), 
+    fcf_growth_rate = np.mean(fin_ratios["free_cash_flow_growth"])
+    fcf_analysis = fcf_valuation.free_cash_flow_valuation(fin_ratios["free_cash_flow"][-1], 
+                                                          fcf_growth_rate, 
                                                           discount_rate, growth_rate, shares_num)
-    return {
-        "financial_report_ratios": fin_ratios,
-        "quarter_financial_report_ratios":quarter_fin_ratios,
-        "free_cashflow_analysis": fcf_analysis
-    }
+    if fcf_analysis is None:
+        return {
+            "financial_report_ratios": fin_ratios,
+            "quarter_financial_report_ratios":quarter_fin_ratios, 
+        }
+    else:
+        return {
+            "financial_report_ratios": fin_ratios,
+            "quarter_financial_report_ratios":quarter_fin_ratios,
+            "free_cashflow_analysis": fcf_analysis
+        }
 
 def calc_hk_indicators(data: dict, stock_price:float, 
                        discount_rate:float=0.09, 
@@ -75,11 +82,18 @@ def calc_hk_indicators(data: dict, stock_price:float,
         discount_rate, 
         growth_rate, 
         shares_num)
-    return {
-        "annual_fin_ratios": fin_ratios,
-        "quarter_fin_ratios": quarter_fin_ratios,
-        "fcf_analysis": fcf_analysis
-    }
+    if fcf_analysis is None:
+        return {
+            "annual_fin_ratios": fin_ratios,
+            "quarter_fin_ratios": quarter_fin_ratios,
+        }
+    else:
+        return {
+            "annual_fin_ratios": fin_ratios,
+            "quarter_fin_ratios": quarter_fin_ratios,
+            "fcf_analysis": fcf_analysis
+        }
+        
 
 def _filter_annual_report(report: pd.DataFrame)-> dict:
     """
