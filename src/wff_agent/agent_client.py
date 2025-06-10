@@ -27,59 +27,70 @@ log.addHandler(handler)
 # 环境变量
 api_key = os.getenv("DEEPSEEK_API_KEY")
 
-async def run_agent(symbol: str, market: str, discount_rate: float, growth_rate: float, total_shares: int=0):
+async def run_agent(symbol: str, market: str, discount_rate: float, 
+                    growth_rate: float, total_shares: int=0, agent_names: list=[]):
     """运行 agent
     
     Args:
         symbol (str): 股票代码
         market (str): 市场代码
-        
+        discount_rate (float): 折现率
+        growth_rate (float): 增长率
+        total_shares (int): 总股本
+        agent_names (list): 要执行的 agent 名称列表
     Returns:
         Dict[str, Any]: 分析结果
     """
-    try:
-       
-        workflow = StockAnalysisWorkflow(
-            [
-                NewsAnalysisAgent(
+    if len(agent_names) == 0 or agent_names is None:
+        agent_names = ["NewsAnalysisAgent", "TechAnalysisAgent", 
+                       "FundamentalAnalysisAgent", 
+                       "GlobalMarketAnalysisAgent", "ComprehensiveAnalysisAgent"]
+    log.info(f"agent_names: {agent_names}")
+    agents = []
+    for agent_name in agent_names:
+        if agent_name == "NewsAnalysisAgent":
+            agent = NewsAnalysisAgent(
                 base_url=os.getenv("DEEPSEEK_BASE_URL"),
                 api_key=os.getenv("DEEPSEEK_API_KEY"),
                 model= "deepseek-chat",
                 temperature= 0.3,
-                max_tokens=64096
-                ),
-                
-                TechAnalysisAgent(
+                max_tokens=64096)
+        elif agent_name == "TechAnalysisAgent":
+            agent = TechAnalysisAgent(
                 base_url=os.getenv("DEEPSEEK_BASE_URL"),
                 api_key=os.getenv("DEEPSEEK_API_KEY"),
                 model= "deepseek-chat",
                 temperature= 0.3,
-                max_tokens=64096
-                ),
-                FundamentalAnalysisAgent(
+                max_tokens=64096)
+        elif agent_name == "FundamentalAnalysisAgent":
+            agent = FundamentalAnalysisAgent(
                 base_url=os.getenv("DEEPSEEK_BASE_URL"),
                 api_key=os.getenv("DEEPSEEK_API_KEY"),
                 model= "deepseek-chat",
                 temperature= 0.3,
-                max_tokens=64096
-                ),
-               
-                GlobalMarketAnalysisAgent(
+                max_tokens=64096)
+        elif agent_name == "GlobalMarketAnalysisAgent":
+            agent = GlobalMarketAnalysisAgent(
                 base_url=os.getenv("DEEPSEEK_BASE_URL"),
                 api_key=os.getenv("DEEPSEEK_API_KEY"),
                 model= "deepseek-chat",
                 temperature= 0.3,
-                max_tokens=64096
-                ),
-                
-                ComprehensiveAnalysisAgent(
+                max_tokens=64096)
+        elif agent_name == "ComprehensiveAnalysisAgent":
+            agent = ComprehensiveAnalysisAgent(
                 base_url=os.getenv("DEEPSEEK_BASE_URL"),
                 api_key=os.getenv("DEEPSEEK_API_KEY"),
                 model= "deepseek-chat",
                 temperature= 0.1,
-                max_tokens=64096
-                )
-            ]
+                max_tokens=64096)
+        else:
+            log.warning(f"Invalid agent name: {agent_name}")
+            continue
+        agents.append(agent)
+    try:
+       
+        workflow = StockAnalysisWorkflow(
+            agents=agents
         )
         date_str = datetime.now().strftime("%Y-%m-%d")
         result = await workflow.execute(input_data={
@@ -91,13 +102,13 @@ async def run_agent(symbol: str, market: str, discount_rate: float, growth_rate:
                 "date":date_str
                 })
         log.info(f"Agent Flow result: {result}")
-        return result["ComprehensiveAnalysisAgent"]
+        return result
         
     except Exception as e:
         log.error(f"Agent 执行失败: {str(e)}", exc_info=True)
         raise
 
-async def main(symbol: str, market: str, discount_rate: float, growth_rate: float, total_shares: int=0):
+async def main(symbol: str, market: str, discount_rate: float, growth_rate: float, total_shares: int=0, agent_names: list=[]):
     """主函数"""
     # 检查股票代码有效性
     if not is_valid_symbol(symbol, market):
@@ -106,7 +117,7 @@ async def main(symbol: str, market: str, discount_rate: float, growth_rate: floa
     
     try:
         log.info(f"开始执行 Agent 分析: {symbol}, {market}, {discount_rate}, {growth_rate}, {total_shares}")
-        result = await run_agent(symbol, market, discount_rate, growth_rate, total_shares)
+        result = await run_agent(symbol, market, discount_rate, growth_rate, total_shares, agent_names)
         log.info(f"Agent 执行结果: \n{result}")
     except Exception as e:
         log.error(f"""

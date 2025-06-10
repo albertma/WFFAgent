@@ -36,7 +36,7 @@ def get_report_indicators(symbol: str, market: str, stock_price: float,
     try:
         if market == 'us':
             reports = av_request.get_stock_financial_report_us(symbol)
-            indictors = av_fin_utils.calc_us_indicators(reports, stock_price, discount_rate=discount_rate, growth_rate=growth_rate)     
+            indictors = av_fin_utils.calc_us_indicators(reports, stock_price, discount_rate=discount_rate, growth_rate=growth_rate, shares_num=shares_num)     
         elif market == 'cn':
             reports = ak_request.get_stock_financial_report_cn(symbol)
             indictors = ak_fin_utils.calc_cn_indicators(reports, stock_price, discount_rate=discount_rate, growth_rate=growth_rate, shares_num=shares_num)  
@@ -51,7 +51,7 @@ def get_report_indicators(symbol: str, market: str, stock_price: float,
     return indictors
 
 if __name__ == "__main__":
-    # logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     try:
         #indictors = get_report_indicators("000333", "cn", 75, 0.07, 0.01, 7600000000)
         #print(indictors)
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         #indictors = get_report_indicators("00700", "hk", 495, 0.07, 0.02, 9200000000)
         # print(indictors)
         
-        indictors = get_report_indicators("AAPL", "us", 209, 0.05, 0.01, 3490989083)
+        indictors = get_report_indicators("601611", "cn", 9.01, 0.05, 0.01, 30.14*(10**9))
         print(indictors)
     except KeyboardInterrupt:
         print("\n程序被用户中断")

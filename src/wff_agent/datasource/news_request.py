@@ -34,7 +34,6 @@ def get_news_from_newapi(keywords: List[str], limit: int = 20) -> Dict[str, Any]
     else:
         keywords_str = keywords[0]
     news_api_key = NEWS_API_KEY
-    log.info(f"news_api_key: {NEWS_API_KEY}")
     log.info(f"开始获取新闻: {keywords_str}, {date_str}")
     url = ('https://newsapi.org/v2/everything?'
        f'q={keywords_str}&'

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import statistics
 from wff_agent.utils import fcf_valuation
 from wff_agent.utils import agent_utils
 
@@ -18,10 +19,10 @@ def _calculate_ratios(share:str, total:str) -> dict:
     """计算比率"""
     if share == "None" or total == "None" or share is None or total is None: 
         return 0.0
-    elif int(total) == 0:
+    elif float(total) == 0.0:
         return 0.0
     else:
-        return round(int(share) / int(total), 4)
+        return round(float(share) / float(total), 4)
 
 def _substract(a: str, b: str) -> dict:
     """计算差值"""
@@ -41,7 +42,7 @@ def _safe_float(value) -> float:
     except (ValueError, TypeError):
         return 0.0
 
-def calc_us_indicators(data: dict, stock_price:float = 100, discount_rate:float=0.09, growth_rate:float=0.01) -> dict:
+def calc_us_indicators(data: dict, stock_price:float = 100, discount_rate:float=0.09, growth_rate:float=0.01, shares_num:int=1) -> dict:
     log.info("calc_us_indicators")
     annual_balance_sheet = data["balance_sheet"]["annualReports"]
     annual_income_statement = data["income_statement"]["annualReports"]
@@ -64,20 +65,29 @@ def calc_us_indicators(data: dict, stock_price:float = 100, discount_rate:float=
     # 计算最近3年的free cash flow平均增长率
     free_cash_flow = [
         _substract(annual_cashflow_statement[i]["operatingCashflow"], annual_cashflow_statement[i]["capitalExpenditures"])
-        for i in range(len(annual_cashflow_statement))
+        for i in range(min(len(annual_cashflow_statement), 5))
     ]
     free_cash_flow_growth = [
         _growth_rate(free_cash_flow[i], free_cash_flow[i + 1]) for i in range(len(free_cash_flow) - 1)
     ]
-    average_growth_rate = round(sum(free_cash_flow_growth) / len(free_cash_flow_growth),2)
+    free_cash_flow_growth.sort()
+    free_cash_flow_growth = free_cash_flow_growth[1:-1]
+    # remove max and min
+    median_free_cash_flow_growth = statistics.median(free_cash_flow_growth)
+    mean_free_cash_flow_growth = statistics.mean(free_cash_flow_growth)
+    average_growth_rate = min(median_free_cash_flow_growth, mean_free_cash_flow_growth)
+    log.debug(f"自由现金流: {free_cash_flow}")
+    log.debug(f"自由现金流增长率: {free_cash_flow_growth}")
+    log.info(f"Median free cash flow growth rate: {median_free_cash_flow_growth}, Mean free cash flow growth rate: {mean_free_cash_flow_growth}")
     log.info(f"Average free cash flow growth rate: {average_growth_rate}")
     
     # 根据最近3年的free cash flow平均增长率计算未来5年的自由现金流
     # 计算未来5年的自由现金流折现值
     # discount_rate = 0.1  # 假设折现率为10%
     # growth_rate = 0.05  # 假设长期增长率为5%
-    shares_num = annual_balance_sheet[0]["commonStockSharesOutstanding"]
+    #shares_num = annual_balance_sheet[0]["commonStockSharesOutstanding"]
     log.debug(f"shares_num: {shares_num}")
+    
     
     fcf_valuation_result = fcf_valuation.free_cash_flow_valuation(
         free_cash_flow[0],
@@ -88,7 +98,8 @@ def calc_us_indicators(data: dict, stock_price:float = 100, discount_rate:float=
     )
     if fcf_valuation_result is None:
         return {
-            'annual_fin_ratios': annual_indicators
+            'annual_fin_ratios': annual_indicators,
+            "quarter_fin_ratios": quarterly_indicators,
         }
     else:
         return {
@@ -97,7 +108,8 @@ def calc_us_indicators(data: dict, stock_price:float = 100, discount_rate:float=
             "fcf_analysis": fcf_valuation_result,
         }
 
-def _calculate_financial_ratios(balance_sheet:list, income_statement:list, cashflow_statement:list, stock_price:float, annual:bool) -> dict:
+def _calculate_financial_ratios(balance_sheet:list, income_statement:list,
+                                cashflow_statement:list, stock_price:float, annual:bool) -> dict:
     """计算财务比率"""
     length = min(len(balance_sheet), len(income_statement))
     length = min(length, len(cashflow_statement))
@@ -110,8 +122,8 @@ def _calculate_financial_ratios(balance_sheet:list, income_statement:list, cashf
     balance_sheet.sort(key=lambda x: x["fiscalDateEnding"], reverse=True)
     income_statement.sort(key=lambda x: x["fiscalDateEnding"], reverse=True)
     cashflow_statement.sort(key=lambda x: x["fiscalDateEnding"], reverse=True)
-    print(f"income_statement: {income_statement}")
-    revenue_growth = [_growth_rate(income_statement[i]["totalRevenue"], income_statement[i+1]["totalRevenue"]) for i in range(length)]
+    print(f"Calc growth rate")
+    revenue_growth = [_growth_rate(income_statement[i]["totalRevenue"], income_statement[i+1]["totalRevenue"]) for i in range(length-1)]
     gross_margin = [_calculate_ratios(income_statement[i]["grossProfit"], income_statement[i]["totalRevenue"]) for i in range(length)]
     
     log.debug(f"data length: {length}")
@@ -142,21 +154,22 @@ def _calculate_financial_ratios(balance_sheet:list, income_statement:list, cashf
     log.debug(f"calc free cashflow ratio")
     free_cash_flow = [ _substract(cashflow_statement[i]["operatingCashflow"],cashflow_statement[i]["capitalExpenditures"]) for i in range(length)]
     free_cash_flow_change_rate = [_growth_rate(free_cash_flow[i], free_cash_flow[i+1]) for i in range(length-1)]
-    free_cash_flow_ratio = [_calculate_ratios(free_cash_flow[i], income_statement[i]["totalRevenue"]) for i in range(length-1)]
+    free_cash_flow_ratio = [_calculate_ratios(free_cash_flow[i], income_statement[i]["totalRevenue"]) for i in range(length)]
     # ROE（包括净利润率=Net Income/Revenue，总资产周转率=Revenue/Avg Assets， 权益乘数=Avg Assets / Avg Shareholder Equity）
     log.debug(f"calc roe")
     net_income_margin = [_calculate_ratios(income_statement[i]["netIncome"], income_statement[i]["totalRevenue"]) for i in range(length)]
     log.debug(f"total_asset_turnover")
     total_asset_turnover = [_calculate_ratios(income_statement[i]["totalRevenue"], 
         (_safe_float(balance_sheet[i]["totalAssets"]) + _safe_float(balance_sheet[i+1]["totalAssets"])) / 2) 
-        for i in range(length)]
-    log.debug(f"equity_multiplier")
+        for i in range(length-1)]
+    log.debug(f"calc equity_multiplier")
     equity_multiplier = [_calculate_ratios(
         (_safe_float(balance_sheet[i]["totalAssets"]) + _safe_float(balance_sheet[i+1]["totalAssets"])) / 2, 
         (_safe_float(balance_sheet[i]["totalShareholderEquity"]) + _safe_float(balance_sheet[i+1]["totalShareholderEquity"])) / 2) 
-        for i in range(length)]
+        for i in range(length-1)]
     log.debug(f"roe")
-    roe = [round(net_income_margin[i] * total_asset_turnover[i] * equity_multiplier[i],2) for i in range(length)]
+    min_length = min(len(net_income_margin), len(total_asset_turnover), len(equity_multiplier))
+    roe = [round(net_income_margin[i] * total_asset_turnover[i] * equity_multiplier[i],2) for i in range(min_length)]
     
         
     # 资产负债率，流动比率，速动比率
@@ -176,9 +189,9 @@ def _calculate_financial_ratios(balance_sheet:list, income_statement:list, cashf
     # 根据股价和EPS计算的市盈率TTM（PE_TTM），市净率（PB）
     log.debug(f"calc pe pb ratio")
     if annual:
-       
         earnings_per_share = [_calculate_ratios(income_statement[i]["netIncome"], balance_sheet[i]["commonStockSharesOutstanding"]) for i in range(length)]
         booking_value_per_share = [_calculate_ratios(balance_sheet[i]["totalShareholderEquity"], balance_sheet[i]["commonStockSharesOutstanding"]) for i in range(length)]
+        log.debug(f"stock_price: {stock_price}, earnings_per_share: {earnings_per_share}")
         pe_ratio_ttm = _calculate_ratios(stock_price, earnings_per_share[0])
         pb_ratio = _calculate_ratios(stock_price, booking_value_per_share[0])
     else:

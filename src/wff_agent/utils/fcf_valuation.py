@@ -19,7 +19,7 @@ def free_cash_flow_valuation(latest_fcf:int, recent_3_yr_fcf_avg_growth:float,
     if shares_num == 0 or shares_num == "None":
         print("股票数量为0")
         return None
-    if recent_3_yr_fcf_avg_growth < 0:
+    if recent_3_yr_fcf_avg_growth <= 0 or latest_fcf <= 0:
         return None
     # 计算未来5年现金流
     future_5_yr_fcf = [latest_fcf*(1+recent_3_yr_fcf_avg_growth)**(i+1) for i in range(5)]
@@ -35,7 +35,7 @@ def free_cash_flow_valuation(latest_fcf:int, recent_3_yr_fcf_avg_growth:float,
     terminal_value_discounted = terminal_value/(1+discount_rate)**5
     log.debug(f"to calc present_value: future_5_yr_discounted_fcf_sum: {future_5_yr_discounted_fcf_sum}, terminal_value_discounted: {terminal_value_discounted}")
     present_value = future_5_yr_discounted_fcf_sum + terminal_value_discounted
-    log.debug(f"to return: present_value: {present_value}, shares_num: {shares_num}")
+    log.debug(f"to return: present_value: {present_value}, shares_num: {shares_num}, intrinsic_value: {present_value/int(shares_num)}")
     return {
         "latest_fcf": latest_fcf,
         "recent_3_yr_fcf_avg_growth": recent_3_yr_fcf_avg_growth,

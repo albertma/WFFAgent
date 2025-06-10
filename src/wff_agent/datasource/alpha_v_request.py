@@ -59,13 +59,13 @@ def get_stock_financial_report_us(symbol: str) -> dict:
             balance_sheet = balance_sheet_future.result()
             income_statement = income_statement_future.result()
             cash_flow = cash_flow_future.result() 
-            if balance_sheet is None:
+            if balance_sheet is None or len(balance_sheet) == 0:
                 log.error(f"获取 {symbol} 资产负债表失败")
                 raise Exception(f"获取 {symbol} 资产负债表失败")
-            if income_statement is None:
+            if income_statement is None or len(income_statement) == 0:
                 log.error(f"获取 {symbol} 利润表失败")
                 raise Exception(f"获取 {symbol} 利润表失败")
-            if cash_flow is None:
+            if cash_flow is None or len(cash_flow) == 0:
                 log.error(f"获取 {symbol} 现金流量表失败")
                 raise Exception(f"获取 {symbol} 现金流量表失败")
     except Exception as e:

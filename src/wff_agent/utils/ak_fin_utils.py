@@ -28,9 +28,10 @@ def calc_cn_indicators(data: dict, stock_price:float,
     annual_balance_sheet = _filter_annual_report(data["balance_sheet"])
     annual_income_statement = _filter_annual_report(data["income_statement"])
     annual_cash_flow_statement = _filter_annual_report(data["cashflow"])
-    quarter_balance_sheet = _filter_quarter_report(data["quarter_balance_sheet"])
-    quarter_income_statement = _filter_quarter_report(data["quarter_income_statement"])
-    quarter_cash_flow_statement = _filter_quarter_report(data["quarter_cashflow"])
+    
+    quarter_balance_sheet = _filter_quarter_report(data["balance_sheet"])
+    quarter_income_statement = _filter_quarter_report(data["income_statement"])
+    quarter_cash_flow_statement = _filter_quarter_report(data["cashflow"])
     # 计算财务指标
     fin_ratios = _calc_fin_cn_ratio(annual_balance_sheet, annual_income_statement, annual_cash_flow_statement, stock_price)
     quarter_fin_ratios = _calc_fin_cn_ratio(quarter_balance_sheet, quarter_income_statement, quarter_cash_flow_statement, stock_price)
@@ -110,9 +111,10 @@ def _filter_annual_report(report: pd.DataFrame)-> dict:
     log.info(f"过滤年度报告 _filter_annual_report size: {len(annual_report)}")
     if len(annual_report) > 0:
         annual_report = annual_report.head(7)
-        log.debug(f"过滤年度报告 _filter_annual_report: {annual_report}")
+        log.debug(f"过滤年度报告 _filter_annual_report: \n{annual_report}")
         return _cn_df_to_dict(annual_report)
     else:
+        log.debug(f"过滤年度报告 _filter_annual_report: \n{annual_report}")
         return _cn_df_to_dict(annual_report)  
 def _filter_quarter_report(report: pd.DataFrame)-> dict:
     """
@@ -121,7 +123,7 @@ def _filter_quarter_report(report: pd.DataFrame)-> dict:
     report['报告日'] = pd.to_datetime(report['报告日'])
     report.fillna(0, inplace=True)
     report.sort_values(by="报告日", inplace=True, ascending=False)
-    report = report.head(5)
+    report = report.head(6)
     return _cn_df_to_dict(report)
 
 def _calc_growth_rate(current_value: float, previous_value: float) -> float:

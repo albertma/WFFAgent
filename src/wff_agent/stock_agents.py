@@ -39,7 +39,7 @@ class StockAnalysisAgent(AnalysisAgent):
         file_path = "./reports/"
         if not os.path.exists(file_path):
             os.makedirs(file_path)
-        with open("./reports/"+output_file_name, "w") as f:
+        with open("./reports/" + output_file_name, "w") as f:
             f.write(result)
         
 class FundamentalAnalysisAgent(StockAnalysisAgent):
@@ -124,9 +124,31 @@ class ComprehensiveAnalysisAgent(StockAnalysisAgent):
     
     def prepare_input(self, input: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
         """准备输入"""
-        log.info(f"Context: {context}")
-        input["technical_analysis"] = context["TechAnalysisAgent"]["output"]
-        input["fundamental_analysis"] = context["FundamentalAnalysisAgent"]["output"]
-        input["news_analysis"] = context["NewsAnalysisAgent"]["output"]
-        input["global_market_analysis"] = context["GlobalMarketAnalysisAgent"]["output"]
+        if context["TechAnalysisAgent"]["output"] is None or len(context["TechAnalysisAgent"]["output"]) == 0:
+            log.info(f"TechAnalysisAgent 的输出为空，读取文件: {input['symbol']}_{input['market']}_TechAnalysisAgent.md")
+            input["technical_analysis"] = self.read_report_files(input, "TechAnalysisAgent")
+        else:
+            input["technical_analysis"] = context["TechAnalysisAgent"]["output"]
+        
+        if context["FundamentalAnalysisAgent"] is None or len(context["FundamentalAnalysisAgent"]["output"]) == 0:
+            log.info(f"FundamentalAnalysisAgent 的输出为空，读取文件: {input['symbol']}_{input['market']}_FundamentalAnalysisAgent.md")
+            input["fundamental_analysis"] = self.read_report_files(input, "FundamentalAnalysisAgent")
+        else:
+            input["fundamental_analysis"] = context["FundamentalAnalysisAgent"]["output"]
+            
+        if context["NewsAnalysisAgent"] is None or len(context["NewsAnalysisAgent"]["output"]) == 0:
+            log.info(f"NewsAnalysisAgent 的输出为空，读取文件: {input['symbol']}_{input['market']}_NewsAnalysisAgent.md")
+            input["news_analysis"] = self.read_report_files(input, "NewsAnalysisAgent")
+        else:
+            input["news_analysis"] = context["NewsAnalysisAgent"]["output"]
+        if context["GlobalMarketAnalysisAgent"] is None or len(context["GlobalMarketAnalysisAgent"]["output"]) == 0:
+            log.info(f"GlobalMarketAnalysisAgent 的输出为空，读取文件: {input['symbol']}_{input['market']}_GlobalMarketAnalysisAgent.md")
+            input["global_market_analysis"] = self.read_report_files(input, "GlobalMarketAnalysisAgent")
+        else:
+            input["global_market_analysis"] = context["GlobalMarketAnalysisAgent"]["output"]
         return super().prepare_input(input, context)
+
+    def read_report_files(self, input: Dict[str, Any], agent_name: str) -> str:
+        file_path = f"./reports/{input['symbol']}_{input['market']}_{agent_name}.md"
+        with open(file_path, "r") as f:
+            return f.read()
