@@ -170,7 +170,7 @@ def _calculate_financial_ratios(balance_sheet:list, income_statement:list,
     log.debug(f"roe")
     min_length = min(len(net_income_margin), len(total_asset_turnover), len(equity_multiplier))
     roe = [round(net_income_margin[i] * total_asset_turnover[i] * equity_multiplier[i],2) for i in range(min_length)]
-    
+    roe = [str(item*100)+"%" for item in roe]
         
     # 资产负债率，流动比率，速动比率
     log.debug(f"calc debt ratio")

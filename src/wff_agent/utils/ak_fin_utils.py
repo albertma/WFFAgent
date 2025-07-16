@@ -231,6 +231,7 @@ def _calc_fin_cn_ratio(balance_sheet: dict,
     log.debug(f"cal equity multiplier")
     equity_multiplier = [_calc_ratio(balance_sheet[i]['资产总计'], balance_sheet[i]['所有者权益(或股东权益)合计']) for i in range(len(balance_sheet))]
     roe = [round(net_margin_ratio[i]*asset_turnover_ratio[i]*equity_multiplier[i],2) for i in range(len(balance_sheet))]
+    roe = [str(item*100)+"%" for item in roe]
     log.debug(f"cal asset debt ratio")
     # 资产负债率，流动比率，速动比率
     asset_debt_ratio = [_calc_ratio(balance_sheet[i]['负债合计'], balance_sheet[i]['资产总计']) for i in range(len(balance_sheet))]

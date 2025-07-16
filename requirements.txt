@@ -2,14 +2,13 @@
 requests  # API调用
 yfinance  # 雅虎金融数据
 pandas     # 数据处理
-langchain  # LLM框架
+langchain~=0.3.0 # LLM框架 - 使用兼容版本
 fastmcp  # FastMCP
 fastapi
 mcp[cli]
 langchain-mcp
-langchain-core
+langchain-core~=0.3.0
 langchain-groq
 openai
 gradio~=5.27.0
 akshare
-langflow

@@ -20,11 +20,11 @@ if __name__ == "__main__":
     try:
         asyncio.run(
             wff_agent.agent_client.main(
-                symbol="601611", 
-                market="cn", 
+                symbol="LULU", 
+                market="us", 
                 discount_rate=0.05, 
                 growth_rate=0.01, 
-                total_shares=30.14*(10**9),
+                total_shares=1.2*(10**9),
             )
         )
     except Exception as e:

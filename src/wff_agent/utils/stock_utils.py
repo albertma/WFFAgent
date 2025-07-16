@@ -62,8 +62,9 @@ def get_market_indicators(symbol: str, market: str, windows_size:int=50) -> Dict
     #计算OBV
     df["OBV"] = (df["成交量"].where(df["收盘"].diff() > 0, 0).rolling(window=20).sum() - df["成交量"].where(df["收盘"].diff() < 0, 0).rolling(window=20).sum()) / df["成交量"].rolling(window=20).sum()
     # 只保留需要的列, 把日期作为索引
-    df = df[['收盘', '成交量', 'MA5', 'MA20', 'MA60','MA200', 
-             'EMA9', 'EMA12', 'K','D','J', 
+    df = df[['开盘', '收盘', '最高', '最低', '成交量', 
+             'MA5', 'MA20', 'MA60', "MA50", 'MA200', 
+             'EMA9', 'EMA12', 'EMA50', 'K','D','J', 
              'RSI',  'DIF', 'DEA', 'MACD', 'BOLL', 'BOLL_UP', 'BOLL_DOWN', 'OBV']].tail(windows_size)
     
     # 重置索引，将日期作为列

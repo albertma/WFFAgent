@@ -3,15 +3,11 @@ import asyncio
 from datetime import datetime
 import logging
 from logging.handlers import TimedRotatingFileHandler
-import os
-from typing import Dict, Any
+
+from typing import Dict, Any, Callable, Optional
 
 # 本地应用导入
-from wff_agent.stock_agents import ComprehensiveAnalysisAgent
-from wff_agent.stock_agents import FundamentalAnalysisAgent
-from wff_agent.stock_agents import TechAnalysisAgent
-from wff_agent.stock_agents import NewsAnalysisAgent
-from wff_agent.stock_agents import GlobalMarketAnalysisAgent
+from wff_agent.agent_factory import AgentFactory
 from wff_agent.stock_analysis_workflow import StockAnalysisWorkflow
 from wff_agent.utils.stock_utils import is_valid_symbol
 # 配置日志
@@ -25,10 +21,11 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 log.addHandler(handler)
 # 环境变量
-api_key = os.getenv("DEEPSEEK_API_KEY")
+
 
 async def run_agent(symbol: str, market: str, discount_rate: float, 
-                    growth_rate: float, total_shares: int=0, agent_names: list=[]):
+                    growth_rate: float, total_shares: int=0, agent_names: list=[],
+                    progress_callback: Optional[Callable] = None):
     """运行 agent
     
     Args:
@@ -42,55 +39,26 @@ async def run_agent(symbol: str, market: str, discount_rate: float,
         Dict[str, Any]: 分析结果
     """
     if len(agent_names) == 0 or agent_names is None:
-        agent_names = ["NewsAnalysisAgent", "TechAnalysisAgent", 
+        agent_names = ["NewsAnalysisAgent", 
+                       "TechAnalysisAgent", 
                        "FundamentalAnalysisAgent", 
-                       "GlobalMarketAnalysisAgent", "ComprehensiveAnalysisAgent"]
+                       "GlobalMarketAnalysisAgent", 
+                       "ComprehensiveAnalysisAgent"]
     log.info(f"agent_names: {agent_names}")
     agents = []
     for agent_name in agent_names:
-        if agent_name == "NewsAnalysisAgent":
-            agent = NewsAnalysisAgent(
-                base_url=os.getenv("DEEPSEEK_BASE_URL"),
-                api_key=os.getenv("DEEPSEEK_API_KEY"),
-                model= "deepseek-chat",
-                temperature= 0.3,
-                max_tokens=64096)
-        elif agent_name == "TechAnalysisAgent":
-            agent = TechAnalysisAgent(
-                base_url=os.getenv("DEEPSEEK_BASE_URL"),
-                api_key=os.getenv("DEEPSEEK_API_KEY"),
-                model= "deepseek-chat",
-                temperature= 0.3,
-                max_tokens=64096)
-        elif agent_name == "FundamentalAnalysisAgent":
-            agent = FundamentalAnalysisAgent(
-                base_url=os.getenv("DEEPSEEK_BASE_URL"),
-                api_key=os.getenv("DEEPSEEK_API_KEY"),
-                model= "deepseek-chat",
-                temperature= 0.3,
-                max_tokens=64096)
-        elif agent_name == "GlobalMarketAnalysisAgent":
-            agent = GlobalMarketAnalysisAgent(
-                base_url=os.getenv("DEEPSEEK_BASE_URL"),
-                api_key=os.getenv("DEEPSEEK_API_KEY"),
-                model= "deepseek-chat",
-                temperature= 0.3,
-                max_tokens=64096)
-        elif agent_name == "ComprehensiveAnalysisAgent":
-            agent = ComprehensiveAnalysisAgent(
-                base_url=os.getenv("DEEPSEEK_BASE_URL"),
-                api_key=os.getenv("DEEPSEEK_API_KEY"),
-                model= "deepseek-chat",
-                temperature= 0.1,
-                max_tokens=64096)
-        else:
-            log.warning(f"Invalid agent name: {agent_name}")
+        try:
+            agent = AgentFactory.instance().create_agent(agent_name)
+            agents.append(agent)
+        except Exception as e:
+            log.error(f"Agent {agent_name} 创建失败: {str(e)}", exc_info=True)
             continue
-        agents.append(agent)
+       
     try:
        
         workflow = StockAnalysisWorkflow(
-            agents=agents
+            agents=agents,
+            progress_callback=progress_callback
         )
         date_str = datetime.now().strftime("%Y-%m-%d")
         result = await workflow.execute(input_data={
@@ -108,7 +76,7 @@ async def run_agent(symbol: str, market: str, discount_rate: float,
         log.error(f"Agent 执行失败: {str(e)}", exc_info=True)
         raise
 
-async def main(symbol: str, market: str, discount_rate: float, growth_rate: float, total_shares: int=0, agent_names: list=[]):
+async def main(symbol: str, market: str, discount_rate: float, growth_rate: float, total_shares: int=0, agent_names: list=[], progress_callback: Optional[Callable] = None):
     """主函数"""
     # 检查股票代码有效性
     if not is_valid_symbol(symbol, market):
@@ -117,8 +85,9 @@ async def main(symbol: str, market: str, discount_rate: float, growth_rate: floa
     
     try:
         log.info(f"开始执行 Agent 分析: {symbol}, {market}, {discount_rate}, {growth_rate}, {total_shares}")
-        result = await run_agent(symbol, market, discount_rate, growth_rate, total_shares, agent_names)
+        result = await run_agent(symbol, market, discount_rate, growth_rate, total_shares, agent_names, progress_callback)
         log.info(f"Agent 执行结果: \n{result}")
+        return result
     except Exception as e:
         log.error(f"""
         [ERROR] Agent 执行失败:
@@ -128,6 +97,3 @@ async def main(symbol: str, market: str, discount_rate: float, growth_rate: floa
         - 行号: {e.__traceback__.tb_lineno}
         """, exc_info=True)
 
-# if __name__ == "__main__":
-#     asyncio.run(main(symbol="002963", market="cn", discount_rate=0.05, growth_rate=0.01, total_shares=100000000))
-   

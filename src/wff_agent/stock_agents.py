@@ -71,12 +71,12 @@ class FundamentalAnalysisAgent(StockAnalysisAgent):
     
     def get_user_prompt(self, input:Dict[str, Any], context:Dict[str, Any]) -> str:
         """获取用户提示"""
-        return prompts.FundamentalAnalysisPrompt
+        return prompts.FundamentalAnalysisPrompt_v2
     
     def after_ai_execute(self, result:str, input:Dict[str, Any]):
         """AI 执行后处理"""
         super().after_ai_execute(result, input)
-        input.remove("fin_ratios") ## make sure the input is not contain fin_ratios
+        input.pop("fin_ratios", None) ## make sure the input is not contain fin_ratios
         
     def get_system_prompt(self) -> str:
         return "你是一个专业的财务分析师，请分析公司的基本面, 并给出基本面分析报告(不要包含杜撰的数据)。"
