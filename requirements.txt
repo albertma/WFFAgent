@@ -1,14 +1,37 @@
-# requirements.txt
-requests  # API调用
-yfinance  # 雅虎金融数据
-pandas     # 数据处理
-langchain~=0.3.0 # LLM框架 - 使用兼容版本
-fastmcp  # FastMCP
-fastapi
-mcp[cli]
-langchain-mcp
+# Core dependencies
+requests>=2.31.0  # API调用
+pandas>=2.0.0     # 数据处理
+numpy>=1.24.0     # 数值计算
+yfinance>=0.2.0   # 雅虎金融数据
+
+# LLM and AI frameworks
+langchain~=0.3.0  # LLM框架
 langchain-core~=0.3.0
+langchain-mcp
 langchain-groq
-openai
+openai>=1.0.0
+
+# MCP (Model Context Protocol)
+fastmcp
+fastapi>=0.100.0
+mcp[cli]
+uvicorn>=0.20.0
+
+# Web UI
+streamlit>=1.28.0
 gradio~=5.27.0
-akshare
+
+# Desktop UI
+PyQt6>=6.5.0
+
+# Data sources
+akshare>=1.12.0
+alpha-vantage>=2.3.1
+
+# Utilities
+python-dotenv>=1.0.0
+aiohttp>=3.8.0
+httpx>=0.24.0
+
+# Development and build
+pyinstaller>=6.0.0
