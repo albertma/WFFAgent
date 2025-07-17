@@ -5,6 +5,7 @@
 ## 🚀 主要功能
 
 ### 📊 多维度股票分析
+
 - **技术分析**：趋势、动量、支撑阻力位分析
 - **基本面分析**：财务指标、估值模型、DCF分析
 - **新闻情绪分析**：实时新闻监控和情绪分析
@@ -12,19 +13,22 @@
 - **综合分析**：多因子权重分配和蒙特卡洛模拟
 
 ### 🖥️ 多种使用方式
+
 - **桌面应用**：基于 PyQt6 的独立桌面应用
 - **Web UI**：基于 Streamlit 的 Web 界面
 - **命令行**：交互式命令行界面
 - **MCP 服务器**：Model Context Protocol 服务器
 
 ### 📈 支持市场
+
 - **中国 A 股** (cn)
-- **美国股市** (us) 
+- **美国股市** (us)
 - **香港股市** (hk)
 
 ## 🛠️ 安装
 
 ### 环境要求
+
 - Python 3.8+
 - macOS/Linux/Windows
 
@@ -68,11 +72,14 @@ python build_desktop_app.py
 ```
 
 **功能特点：**
+
 - 图形化界面，操作简单
 - 实时进度显示
 - 多标签页结果展示
 - 支持历史分析结果加载
 - 参数可视化调节
+
+  ![1752762587720](image/README/1752762587720.png)
 
 ### 2. Web UI
 
@@ -82,6 +89,7 @@ python -m src.wff_agent.web_ui
 ```
 
 **功能特点：**
+
 - 基于 Streamlit 的现代化界面
 - 实时数据更新
 - 响应式设计
@@ -95,6 +103,7 @@ python -m src.wff_agent.interactive_dialogue
 ```
 
 **功能特点：**
+
 - 命令行交互界面
 - 逐步参数设置
 - 详细分析过程展示
@@ -107,6 +116,7 @@ python -m src.wff_agent.mcp_server
 ```
 
 **功能特点：**
+
 - Model Context Protocol 支持
 - 工具函数集成
 - 可扩展架构
@@ -114,30 +124,35 @@ python -m src.wff_agent.mcp_server
 ## 📋 分析类型
 
 ### 1. 综合分析 (ComprehensiveAnalysisAgent)
+
 - 多因子权重分配
 - 蒙特卡洛模拟
 - 风险收益比计算
 - 操作建议生成
 
 ### 2. 技术分析 (TechAnalysisAgent)
+
 - 趋势分析
 - 动量指标
 - 支撑阻力位
 - 技术形态识别
 
 ### 3. 基本面分析 (FundamentalAnalysisAgent)
+
 - 财务指标计算
 - DCF 估值模型
 - 自由现金流分析
 - 估值比率分析
 
 ### 4. 新闻情绪分析 (NewsAnalysisAgent)
+
 - 实时新闻监控
 - 情绪分析
 - 事件影响评估
 - 市场反应预测
 
 ### 5. 全球市场分析 (GlobalMarketAnalysisAgent)
+
 - 宏观经济指标
 - 全球市场趋势
 - 汇率影响分析
