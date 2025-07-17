@@ -11,6 +11,8 @@ import logging
 from typing import Dict, Any
 from datetime import datetime
 
+from wff_agent.utils import agent_utils
+
 # 添加项目根目录到Python路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -32,7 +34,7 @@ log = logging.getLogger(__name__)
 
 class AnalysisWorker(QThread):
     """分析工作线程"""
-    progress_updated = pyqtSignal(str)
+    progress_updated = pyqtSignal(str, str, str, str)
     analysis_completed = pyqtSignal(dict)
     analysis_failed = pyqtSignal(str)
     
@@ -48,8 +50,16 @@ class AnalysisWorker(QThread):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
-            self.progress_updated.emit("开始分析...")
-            result = loop.run_until_complete(self.analysis_func(*self.args, **self.kwargs))
+            # 创建进度回调函数
+            def progress_callback(step_name, message, result, status):
+                self.progress_updated.emit(step_name, message, result, status)
+            
+            # 更新kwargs以包含进度回调
+            kwargs = self.kwargs.copy()
+            kwargs['progress_callback'] = progress_callback
+            
+            self.progress_updated.emit("all", "开始分析...", "", "started")
+            result = loop.run_until_complete(self.analysis_func(*self.args, **kwargs))
             
             # 确保结果不为None
             if result is None:
@@ -58,9 +68,14 @@ class AnalysisWorker(QThread):
             self.analysis_completed.emit(result)
             
         except Exception as e:
-            self.analysis_failed.emit(str(e))
+            import traceback
+            error_msg = f"分析失败: {str(e)}\n{traceback.format_exc()}"
+            self.analysis_failed.emit(error_msg)
         finally:
-            loop.close()
+            try:
+                loop.close()
+            except:
+                pass
 
 class StockAnalysisApp(QMainWindow):
     """股票分析桌面应用"""
@@ -181,7 +196,7 @@ class StockAnalysisApp(QMainWindow):
         layout.addWidget(settings_group)
         
         # 验证按钮
-        self.validate_btn = QPushButton("✅ 验证股票代码")
+        self.validate_btn = QPushButton("✅ 验证股票代码, 并加载之前分析结果")
         self.validate_btn.clicked.connect(self.validate_symbol)
         layout.addWidget(self.validate_btn)
         
@@ -245,9 +260,8 @@ class StockAnalysisApp(QMainWindow):
         self.comprehensive_result.setStyleSheet("""
             QTextEdit {
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-                font-size: 12px;
+                font-size: 14px;
                 line-height: 1.4;
-                
                 border: 1px solid #dee2e6;
                 border-radius: 5px;
                 padding: 10px;
@@ -261,9 +275,8 @@ class StockAnalysisApp(QMainWindow):
         self.technical_result.setStyleSheet("""
             QTextEdit {
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-                font-size: 12px;
+                font-size: 14px;
                 line-height: 1.4;
-                
                 border: 1px solid #dee2e6;
                 border-radius: 5px;
                 padding: 10px;
@@ -277,9 +290,8 @@ class StockAnalysisApp(QMainWindow):
         self.fundamental_result.setStyleSheet("""
             QTextEdit {
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-                font-size: 12px;
+                font-size: 14px;
                 line-height: 1.4;
-               
                 border: 1px solid #dee2e6;
                 border-radius: 5px;
                 padding: 10px;
@@ -293,9 +305,8 @@ class StockAnalysisApp(QMainWindow):
         self.news_result.setStyleSheet("""
             QTextEdit {
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-                font-size: 12px;
+                font-size: 14px;
                 line-height: 1.4;
-                
                 border: 1px solid #dee2e6;
                 border-radius: 5px;
                 padding: 10px;
@@ -309,9 +320,8 @@ class StockAnalysisApp(QMainWindow):
         self.global_result.setStyleSheet("""
             QTextEdit {
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-                font-size: 12px;
+                font-size: 14px;
                 line-height: 1.4;
-                
                 border: 1px solid #dee2e6;
                 border-radius: 5px;
                 padding: 10px;
@@ -326,9 +336,8 @@ class StockAnalysisApp(QMainWindow):
         self.settings_display.setStyleSheet("""
             QTextEdit {
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-                font-size: 12px;
+                font-size: 14px;
                 line-height: 1.4;
-                
                 border: 1px solid #dee2e6;
                 border-radius: 5px;
                 padding: 10px;
@@ -372,6 +381,7 @@ class StockAnalysisApp(QMainWindow):
             self.current_settings["symbol"] = symbol
             self.current_settings["market"] = market
             self.status_text.setText(f"✅ 股票代码 {symbol} ({market}) 验证通过")
+            self.load_analysis_result(symbol, market)
         else:
             self.status_text.setText(f"❌ 股票代码 {symbol} ({market}) 无效")
             
@@ -425,12 +435,13 @@ class StockAnalysisApp(QMainWindow):
                 market=self.current_settings["market"],
                 discount_rate=self.current_settings["discount_rate"],
                 growth_rate=self.current_settings["growth_rate"],
-                total_shares=total_shares
+                total_shares=total_shares,
+                progress_callback=self.update_progress
             )
             
-            self.worker.progress_updated.connect(self.update_progress)
-            self.worker.analysis_completed.connect(self.handle_analysis_completed)
-            self.worker.analysis_failed.connect(self.handle_analysis_failed)
+            self.worker.progress_updated.connect(self.update_progress, Qt.ConnectionType.QueuedConnection)
+            self.worker.analysis_completed.connect(self.handle_analysis_completed, Qt.ConnectionType.QueuedConnection)
+            self.worker.analysis_failed.connect(self.handle_analysis_failed, Qt.ConnectionType.QueuedConnection)
             self.worker.start()
             
         except Exception as e:
@@ -466,9 +477,9 @@ class StockAnalysisApp(QMainWindow):
                 agent_names=[analysis_type]
             )
             
-            self.worker.progress_updated.connect(self.update_progress)
-            self.worker.analysis_completed.connect(self.handle_analysis_completed)
-            self.worker.analysis_failed.connect(self.handle_analysis_failed)
+            self.worker.progress_updated.connect(self.update_progress, Qt.ConnectionType.QueuedConnection)
+            self.worker.analysis_completed.connect(self.handle_analysis_completed, Qt.ConnectionType.QueuedConnection)
+            self.worker.analysis_failed.connect(self.handle_analysis_failed, Qt.ConnectionType.QueuedConnection)
             self.worker.start()
             
         except Exception as e:
@@ -486,10 +497,36 @@ class StockAnalysisApp(QMainWindow):
             
         return True
         
-    def update_progress(self, message):
+    def update_progress(self, step_name, message, result, status):
         """更新进度"""
         self.statusBar().showMessage(message)
+        self._update_step_progress(step_name, message, result, status)
         
+    def _update_step_progress(self, step_name, message, result, status):
+        """更新步骤进度"""
+        if status == "started":
+            self.progress_bar.setValue(0)
+            self.progress_bar.setStyleSheet("background-color: #4CAF50;")
+            return
+        if status == "completed":
+            self.progress_bar.setValue(100)
+            if step_name == "ComprehensiveAnalysisAgent":
+                self.comprehensive_result.setText(result)
+            elif step_name == "TechAnalysisAgent":
+                self.technical_result.setText(result)
+            elif step_name == "FundamentalAnalysisAgent":
+                self.fundamental_result.setText(result)
+            elif step_name == "NewsAnalysisAgent":
+                self.news_result.setText(result)
+            elif step_name == "GlobalMarketAnalysisAgent":
+                self.global_result.setText(result)
+            self.progress_bar.setStyleSheet("background-color: #4CAF50;")
+        elif status == "failed":
+            self.progress_bar.setValue(100)
+            self.progress_bar.setStyleSheet("background-color: #FF0000;")
+        else:
+            self.progress_bar.setValue(0)
+            
     def handle_analysis_completed(self, result):
         """处理分析完成"""
         self.progress_bar.setVisible(False)
@@ -530,7 +567,33 @@ class StockAnalysisApp(QMainWindow):
         formatted_text = formatted_text.replace('\n\n\n', '\n\n')
         
         return formatted_text
-        
+    
+    def load_analysis_result(self, symbol, market):
+        """加载分析结果"""
+        report_directory = os.path.join(os.path.dirname(__file__), "reports")
+        report_types = ["ComprehensiveAnalysisAgent", 
+                        "TechAnalysisAgent", 
+                        "FundamentalAnalysisAgent",
+                        "NewsAnalysisAgent", 
+                        "GlobalMarketAnalysisAgent"]
+        for report_type in report_types:
+            report_path = os.path.join(report_directory, f"{symbol}_{market}_{report_type}.md")
+            log.info(f"加载分析结果: {report_path}")
+            result = agent_utils.read_file(report_path)
+            if result:
+                if 'Comprehensive' in report_type:
+                    self.comprehensive_result.setText(result)
+                elif 'Tech' in report_type:
+                    self.technical_result.setText(result)
+                elif 'Fundamental' in report_type:
+                    self.fundamental_result.setText(result)
+                elif 'News' in report_type:
+                    self.news_result.setText(result)
+                elif 'Global' in report_type:
+                    self.global_result.setText(result)
+                
+                
+                
     def update_results_display(self):
         """更新结果显示"""
         if not self.analysis_results:

@@ -49,7 +49,7 @@ def calc_cn_indicators(data: dict, stock_price:float,
         return {
             "financial_report_ratios": fin_ratios,
             "quarter_financial_report_ratios":quarter_fin_ratios,
-            "free_cashflow_analysis": fcf_analysis
+            "dcf_valuation": fcf_analysis
         }
 
 def calc_hk_indicators(data: dict, stock_price:float, 
@@ -92,7 +92,7 @@ def calc_hk_indicators(data: dict, stock_price:float,
         return {
             "annual_fin_ratios": fin_ratios,
             "quarter_fin_ratios": quarter_fin_ratios,
-            "fcf_analysis": fcf_analysis
+            "dcf_valuation": fcf_analysis
         }
         
 

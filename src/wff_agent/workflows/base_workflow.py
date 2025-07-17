@@ -34,11 +34,11 @@ class Workflow(ABC):
         """合并所有步骤的结果"""
         pass
     
-    def update_progress(self, step_name: str, result: str, status: str = "completed"):
+    def update_progress(self, step_name: str, message: str, result: str = "", status: str = "completed"):
         """更新进度回调"""
         if self.progress_callback:
             try:
-                self.progress_callback(step_name, result, status)
+                self.progress_callback(step_name, message, result, status)
             except Exception as e:
                 log.error(f"进度回调执行失败: {e}")
     
@@ -60,7 +60,7 @@ class Workflow(ABC):
             log.info(f"\n ##########开始执行步骤: {step.name}...")
             try:
                 # 通知开始执行步骤
-                self.update_progress(step.name, f"开始执行 {step.name}...", "started")
+                self.update_progress(step.name, f"开始执行 {step.name}...", None, "started")
                 
                 input_data = step.agent.prepare_input(input_data, self.context)
                 user_prompt = step.agent.get_user_prompt(input_data, self.context)
@@ -80,12 +80,12 @@ class Workflow(ABC):
                 step.agent.after_ai_execute(result, input_data)
                 
                 # 通知步骤完成
-                self.update_progress(step.name, result, "completed")
+                self.update_progress(step.name, f"{step.name} 执行完成", result, "completed")
                 
             except Exception as e:
                 log.error(f"##########步骤 {step.name} 执行失败: {str(e)}", exc_info=True)
                 # 通知步骤失败
-                self.update_progress(step.name, f"执行失败: {str(e)}", "failed")
+                self.update_progress(step.name, f"执行失败: {str(e)}", "", "failed")
             finally:
                 if step.result is None:
                     log.error(f"##########步骤 {step.name} 执行失败, 结果设置为 ERROR")
@@ -94,7 +94,7 @@ class Workflow(ABC):
                     }
                     self.results[step.name] = "ERROR"
                     # 通知步骤失败
-                    self.update_progress(step.name, "ERROR", "failed")
+                    self.update_progress(step.name, "ERROR", "", "failed")
         
         # 合并结果
         final_result = self.combine_results()
