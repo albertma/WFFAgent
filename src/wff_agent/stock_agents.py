@@ -61,7 +61,13 @@ class FundamentalAnalysisAgent(StockAnalysisAgent):
             log.debug(f"港股股票价格: {stock_info}")
             input["stock_price"] = stock_info["收盘"]
         
-        input["fin_ratios"] = self.get_fin_ratios(symbol, input["market"], input["stock_price"], input["discount_rate"], input["growth_rate"], input["total_shares"])
+        fin_ratios = self.get_fin_ratios(symbol, input["market"], input["stock_price"], input["discount_rate"], input["growth_rate"], input["total_shares"])
+        input["annual_financial_report_indicators"] = fin_ratios["annual_financial_report_indicators"]
+        input["quarter_financial_report_indicators"] = fin_ratios["quarter_financial_report_indicators"]
+        if "dcf_valuation" in fin_ratios:
+            input["dcf_valuation"] = fin_ratios["dcf_valuation"]
+        else:
+            input["dcf_valuation"] = "未计算DCF估值"
         log.info("获取基本面数据完毕，准备执行基本面分析")
         return super().prepare_input(input, context)
     

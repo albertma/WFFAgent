@@ -43,7 +43,7 @@ def _safe_float(value) -> float:
         return 0.0
 
 def calc_us_indicators(data: dict, stock_price:float = 100, discount_rate:float=0.09, growth_rate:float=0.01, shares_num:int=1) -> dict:
-    log.info("calc_us_indicators")
+    log.info(f"calc_us_indicators, stock_price: {stock_price}, discount_rate: {discount_rate}, growth_rate: {growth_rate}, shares_num: {shares_num} ")
     annual_balance_sheet = data["balance_sheet"]["annualReports"]
     annual_income_statement = data["income_statement"]["annualReports"]
     annual_cashflow_statement = data["cashflow"]["annualReports"]
@@ -70,9 +70,9 @@ def calc_us_indicators(data: dict, stock_price:float = 100, discount_rate:float=
     free_cash_flow_growth = [
         _growth_rate(free_cash_flow[i], free_cash_flow[i + 1]) for i in range(len(free_cash_flow) - 1)
     ]
-    free_cash_flow_growth.sort()
-    free_cash_flow_growth = free_cash_flow_growth[1:-1]
+   
     # remove max and min
+    log.info(f"free_cash_flow_growth: {free_cash_flow_growth}")
     median_free_cash_flow_growth = statistics.median(free_cash_flow_growth)
     mean_free_cash_flow_growth = statistics.mean(free_cash_flow_growth)
     average_growth_rate = min(median_free_cash_flow_growth, mean_free_cash_flow_growth)
@@ -98,13 +98,13 @@ def calc_us_indicators(data: dict, stock_price:float = 100, discount_rate:float=
     )
     if fcf_valuation_result is None:
         return {
-            'annual_fin_ratios': annual_indicators,
-            "quarter_fin_ratios": quarterly_indicators,
+            'annual_financial_report_indicators': annual_indicators,
+            "quarter_financial_report_indicators": quarterly_indicators,
         }
     else:
         return {
-            "annual_fin_ratios": annual_indicators,
-            "quarter_fin_ratios": quarterly_indicators,
+            "annual_financial_report_indicators": annual_indicators,
+            "quarter_financial_report_indicators": quarterly_indicators,
             "dcf_valuation": fcf_valuation_result,
         }
 

@@ -29,6 +29,7 @@ TechnicalAnalysisPrompt = """
    - GetMarketIndicators(symbol='{symbol}', market='{market}') 请将获取的JSON数据转换为易读的格式，然后进行分析
 
 2. 分析数据并生成报告:
+   当前股票价格, 日期
    ▶ 趋势判断（上升/下降/震荡）基于：
       - MA多周期排列
          - MA5 短期趋势
@@ -50,11 +51,12 @@ TechnicalAnalysisPrompt = """
       - BOLL带收窄/扩张
       - RSI指标超买/超卖
       - KDJ指标超买/超卖
-      - OBV指标的量价关系
-
+      - OBV指标的量价关系，给出量价背离的时间点，给出量价背离的次数
+      最后给出综合的趋势判断，并给出操作建议
    ▶ 关键价位计算：
       支撑位 = MIN(MA20,EMA12,BOLL下轨)
       阻力位 = MAX(MA60,EMA50,BOLL上轨)
+      
       
    ▶ 交易信号：
       买入信号：MACD金叉 + RSI<30 + 价格突破BOLL中轨
@@ -90,7 +92,10 @@ TechnicalAnalysisPrompt = """
 FundamentalAnalysisPrompt_v2 = """
 【基本面分析流程】
 1. 财务数据如下:
-   {fin_ratios}
+  
+   - 根据 {annual_financial_report_indicators}:年度财务指标，{quarter_financial_report_indicators}:季度财务指标给出财务指标分析
+   - 根据 {dcf_valuation}给出DCF估值区间，判断当前股价是否合理
+   
 2. 分析财务指标:
    - 增长性分析：
       - 营收增长率， 连续3季度低于10%需标记为风险点，对比年度营收增长率，如果年度营收增长率低于10%，需标记为风险点
@@ -106,7 +111,7 @@ FundamentalAnalysisPrompt_v2 = """
       - 应收账款周转率， 给出应收账款周转率的变动趋势，并给出应收账款周转率的变动原因
       - 总资产周转率， 给出总资产周转率的变动趋势，并给出总资产周转率的变动原因
    - 偿债能力分析：
-      - 负债率， 给出负债率的变动趋势，并给出负债率的变动 原因
+      - 负债率， 给出负债率的变动趋势，并给出负债率的变动原因
       - 流动比率， 给出流动比率的变动趋势，并给出流动比率的变动原因
       - 速动比率， 给出速动比率的变动趋势，并给出速动比率的变动原因
       - 现金比率， 给出现金比率的变动趋势，并给出现金比率的变动原因
@@ -117,11 +122,10 @@ FundamentalAnalysisPrompt_v2 = """
    - 使用PEST分析法，分析公司的宏观环境，包括政治、经济、社会、技术
    - 分析估值
       1. 相对估值法：
-         - PEG比率 = 市盈率 / 营收增长率
+         - PEG比率 = 市盈率（pe_ttm） / 营收增长率(annual_revenue_growth_rate[0])
          - 市净率分位数 = 行业排名百分比
       2. 绝对估值法：
-         - 预测未来5年自由现金流，折现后计算公司价值，并给出公司价值的估值区间
-         - DCF模型参数：WACC={discount_rate},永续增长率={growth_rate}
+         - 根据给出的DCF数据，判断当前价格是否合理
       3. 估值分析，给出估值区间，估值是否合理
 """
 
@@ -141,7 +145,9 @@ FundamentalAnalysisPrompt = """
     
 【基本面分析流程】
 1. 财务数据如下:
-   {fin_ratios}
+   - 根据 {annual_financial_report_indicators}:年度财务指标，{quarter_financial_report_indicators}:季度财务指标给出财务指标分析
+   - 根据 {dcf_valuation}给出DCF估值区间，判断当前股价是否合理
+
 2. 分析财务指标:
    - 财务指标同比波动>=30%需标注；
    - 关键比率超出行业均值±2σ需预警；
@@ -161,9 +167,9 @@ FundamentalAnalysisPrompt = """
       PEG比率 = 市盈率 / 营收增长率
       市净率分位数 = 行业排名百分比
    ▶ 绝对估值法：
-      预测未来5年自由现金流，折现后计算公司价值，并给出公司价值的估值区间
-      DCF模型参数：WACC={discount_rate},永续增长率={growth_rate}
+     根据 {fin_ratios}中的dcf_valuation给出DCF估值区间，判断当前股价是否合理
 
+      
 4. 财务指标分析
    - 财务指标异常分析，给出异常指标列表，并给出异常原因；
    - 估值分析，给出估值区间，估值是否合理；
@@ -196,11 +202,16 @@ GlobalMarketAnalysisPrompt = """
 
 MacroAnalysisPrompt = """
 【宏观分析流程】
-1. 调用工具序列:
-   - GetMacroData() 请将获取的JSON数据转换为易读的格式，然后进行分析
-
-2. 分析数据并生成报告:
-   ▶ 宏观分析：
+ 
+ {us_cpi}:美国CPI
+ {us_unemployment_rate}:美国失业率
+ {us_inflation_rate}:美国通胀率
+ {us_gdp}:美国GDP
+ {us_treasury_yield}:美国国债收益率
+ 
+1. 分析数据并生成报告:
+   ▶ 宏观指标分析
+      - 宏观指标变化趋势
       - 宏观指标分析
       - 宏观指标变化趋势
 """
@@ -212,9 +223,10 @@ ComprehensiveAnalysisPrompt = """
 新闻分析：{news_analysis}
 全球市场分析：{global_market_analysis}
 
-
 【综合决策】
+报告中注明：
 要求：注明当前股票价格:{stock_price}，股票代码:{symbol}，股票市场:{market}, 日期:{date}
+分析要求预测未来一周和一个月的走势，给出多因子权重分配，并给出操作建议
 1. 多因子权重分配：
    技术面 50%（趋势30%+动量20%）
    基本面 30%（估值20%+质量10%）
@@ -232,5 +244,5 @@ ComprehensiveAnalysisPrompt = """
 
 4. 综合分析：
    给出基本面分析（SWOT, 杜邦分析， 波特五力分析），技术面分析，情绪分析的要点（SWOT）
-   基于技术面、基本面、市场情绪和宏观分析，给出未来一周的股票走势预测（上涨、下跌，震荡），操作建议（买入、卖出、持有）
+   基于技术面、基本面、市场情绪和宏观分析，给出未来一周和一个月的股票走势预测（上涨、下跌，震荡），操作建议（买入、卖出、持有）
 """

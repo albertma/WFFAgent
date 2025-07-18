@@ -42,13 +42,13 @@ def calc_cn_indicators(data: dict, stock_price:float,
                                                           discount_rate, growth_rate, shares_num)
     if fcf_analysis is None:
         return {
-            "financial_report_ratios": fin_ratios,
-            "quarter_financial_report_ratios":quarter_fin_ratios, 
+            "annual_financial_report_indicators": fin_ratios,
+            "quarter_financial_report_indicators":quarter_fin_ratios, 
         }
     else:
         return {
-            "financial_report_ratios": fin_ratios,
-            "quarter_financial_report_ratios":quarter_fin_ratios,
+            "annual_financial_report_indicators": fin_ratios,
+            "quarter_financial_report_indicators":quarter_fin_ratios,
             "dcf_valuation": fcf_analysis
         }
 
@@ -85,13 +85,13 @@ def calc_hk_indicators(data: dict, stock_price:float,
         shares_num)
     if fcf_analysis is None:
         return {
-            "annual_fin_ratios": fin_ratios,
-            "quarter_fin_ratios": quarter_fin_ratios,
+            "annual_financial_report_indicators": fin_ratios,
+            "quarter_financial_report_indicators": quarter_fin_ratios,
         }
     else:
         return {
-            "annual_fin_ratios": fin_ratios,
-            "quarter_fin_ratios": quarter_fin_ratios,
+            "annual_financial_report_indicators": fin_ratios,
+            "quarter_financial_report_indicators": quarter_fin_ratios,
             "dcf_valuation": fcf_analysis
         }
         

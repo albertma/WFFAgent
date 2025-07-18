@@ -28,9 +28,41 @@ except ImportError:
     print("❌ 需要安装PyQt6: pip install PyQt6")
     sys.exit(1)
 
-# 配置日志
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger(__name__)
+# 配置日志 - 显示所有日志信息
+def setup_logging():
+    """设置日志配置"""
+    # 创建格式化器
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    
+    # 创建控制台处理器
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+    
+    # 创建文件处理器
+    file_handler = logging.FileHandler('wff_agent.log', encoding='utf-8')
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+    
+    # 配置根日志记录器
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    root_logger.addHandler(console_handler)
+    root_logger.addHandler(file_handler)
+    
+    # 设置特定模块的日志级别
+    logging.getLogger('wff_agent').setLevel(logging.INFO)
+    logging.getLogger('httpx').setLevel(logging.INFO)
+    logging.getLogger('aiohttp').setLevel(logging.INFO)
+    logging.getLogger('asyncio').setLevel(logging.INFO)
+    
+    return logging.getLogger(__name__)
+
+# 初始化日志
+log = setup_logging()
 
 class AnalysisWorker(QThread):
     """分析工作线程"""
@@ -110,7 +142,11 @@ class StockAnalysisApp(QMainWindow):
         # 创建标题栏
         title_label = QLabel("🤖 股票分析智能助手")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setFont(QFont("Arial", 16, QFont.Weight.Bold))
+        # 使用系统默认字体，避免字体加载问题
+        title_font = QFont()
+        title_font.setPointSize(16)
+        title_font.setWeight(QFont.Weight.Bold)
+        title_label.setFont(title_font)
         title_label.setStyleSheet("color: #2c3e50; margin: 5px; padding: 5px; background-color: #f8f9fa; border-radius: 5px;")
         title_label.setMaximumHeight(50)
         main_layout.addWidget(title_label)
@@ -185,11 +221,11 @@ class StockAnalysisApp(QMainWindow):
         
         # 总股本设置
         shares_layout = QHBoxLayout()
-        shares_layout.addWidget(QLabel("总股本:"))
+        shares_layout.addWidget(QLabel("总股本（百万股）:"))
         self.shares_input = QLineEdit()
-        self.shares_input.setPlaceholderText("0-9999999999999")
+        self.shares_input.setPlaceholderText("0-99999")
         self.shares_input.setText("0")
-        self.shares_input.setToolTip("港股需要填写总股本，取值范围: 0-9999999999999")
+        self.shares_input.setToolTip("港股,A股需要填写总股本，取值范围: 0-99999")
         shares_layout.addWidget(self.shares_input)
         settings_layout.addLayout(shares_layout)
         
@@ -259,7 +295,7 @@ class StockAnalysisApp(QMainWindow):
         self.comprehensive_result.setReadOnly(True)
         self.comprehensive_result.setStyleSheet("""
             QTextEdit {
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
                 font-size: 14px;
                 line-height: 1.4;
                 border: 1px solid #dee2e6;
@@ -274,7 +310,7 @@ class StockAnalysisApp(QMainWindow):
         self.technical_result.setReadOnly(True)
         self.technical_result.setStyleSheet("""
             QTextEdit {
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
                 font-size: 14px;
                 line-height: 1.4;
                 border: 1px solid #dee2e6;
@@ -289,7 +325,7 @@ class StockAnalysisApp(QMainWindow):
         self.fundamental_result.setReadOnly(True)
         self.fundamental_result.setStyleSheet("""
             QTextEdit {
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
                 font-size: 14px;
                 line-height: 1.4;
                 border: 1px solid #dee2e6;
@@ -304,7 +340,7 @@ class StockAnalysisApp(QMainWindow):
         self.news_result.setReadOnly(True)
         self.news_result.setStyleSheet("""
             QTextEdit {
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
                 font-size: 14px;
                 line-height: 1.4;
                 border: 1px solid #dee2e6;
@@ -319,7 +355,7 @@ class StockAnalysisApp(QMainWindow):
         self.global_result.setReadOnly(True)
         self.global_result.setStyleSheet("""
             QTextEdit {
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
                 font-size: 14px;
                 line-height: 1.4;
                 border: 1px solid #dee2e6;
@@ -335,7 +371,7 @@ class StockAnalysisApp(QMainWindow):
         self.settings_display.setMaximumHeight(200)
         self.settings_display.setStyleSheet("""
             QTextEdit {
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
                 font-size: 14px;
                 line-height: 1.4;
                 border: 1px solid #dee2e6;
@@ -364,8 +400,11 @@ class StockAnalysisApp(QMainWindow):
         symbol = self.symbol_input.text().strip()
         market = self.market_combo.currentText()
         
+        log.info(f"🔍 验证股票代码: {symbol} ({market})")
+        
         if not symbol:
             self.status_text.setText("❌ 请输入股票代码")
+            log.warning("❌ 股票代码为空")
             return
             
         # 简单的股票代码验证
@@ -381,9 +420,11 @@ class StockAnalysisApp(QMainWindow):
             self.current_settings["symbol"] = symbol
             self.current_settings["market"] = market
             self.status_text.setText(f"✅ 股票代码 {symbol} ({market}) 验证通过")
+            log.info(f"✅ 股票代码验证通过: {symbol} ({market})")
             self.load_analysis_result(symbol, market)
         else:
             self.status_text.setText(f"❌ 股票代码 {symbol} ({market}) 无效")
+            log.warning(f"❌ 股票代码无效: {symbol} ({market})")
             
     def validate_total_shares(self):
         """验证总股本输入"""
@@ -394,8 +435,8 @@ class StockAnalysisApp(QMainWindow):
             
         try:
             shares_value = int(shares_text)
-            if shares_value < 0 or shares_value > 9999999999999:
-                self.status_text.setText("❌ 总股本超出范围 (0-9999999999999)")
+            if shares_value < 0 or shares_value > 99999:
+                self.status_text.setText("❌ 总股本超出范围 (0-99999)")
                 return False
             self.current_settings["total_shares"] = shares_value
             return True
@@ -410,12 +451,16 @@ class StockAnalysisApp(QMainWindow):
         
     def run_complete_analysis(self):
         """运行完整分析"""
+        log.info("🚀 开始运行完整分析...")
+        
         if not self.validate_inputs():
+            log.warning("❌ 输入验证失败，取消分析")
             return
             
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)  # 不确定进度
         
+        self.update_settings_display()
         # 创建分析工作线程
         try:
             from wff_agent.agent_client import main as run_agent_analysis
@@ -429,13 +474,15 @@ class StockAnalysisApp(QMainWindow):
                 except ValueError:
                     total_shares = 0
                     
+            log.info(f"📊 分析参数: 股票={self.current_settings['symbol']}, 市场={self.current_settings['market']}, 折现率={self.current_settings['discount_rate']}, 增长率={self.current_settings['growth_rate']}, 总股本={total_shares}百万股")
+            
             self.worker = AnalysisWorker(
                 run_agent_analysis,
                 symbol=self.current_settings["symbol"],
                 market=self.current_settings["market"],
                 discount_rate=self.current_settings["discount_rate"],
                 growth_rate=self.current_settings["growth_rate"],
-                total_shares=total_shares,
+                total_shares=total_shares*1000000,
                 progress_callback=self.update_progress
             )
             
@@ -443,8 +490,10 @@ class StockAnalysisApp(QMainWindow):
             self.worker.analysis_completed.connect(self.handle_analysis_completed, Qt.ConnectionType.QueuedConnection)
             self.worker.analysis_failed.connect(self.handle_analysis_failed, Qt.ConnectionType.QueuedConnection)
             self.worker.start()
+            log.info("✅ 分析工作线程已启动")
             
         except Exception as e:
+            log.error(f"❌ 创建分析工作线程失败: {str(e)}")
             self.handle_analysis_failed(str(e))
             
     def run_single_analysis(self, analysis_type):
@@ -454,7 +503,7 @@ class StockAnalysisApp(QMainWindow):
             
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)
-        
+        self.update_settings_display()
         try:
             from wff_agent.agent_client import main as run_agent_analysis
             
@@ -473,7 +522,7 @@ class StockAnalysisApp(QMainWindow):
                 market=self.current_settings["market"],
                 discount_rate=self.current_settings["discount_rate"],
                 growth_rate=self.current_settings["growth_rate"],
-                total_shares=total_shares,
+                total_shares=total_shares*1000000,
                 agent_names=[analysis_type]
             )
             
@@ -500,9 +549,9 @@ class StockAnalysisApp(QMainWindow):
     def update_progress(self, step_name, message, result, status):
         """更新进度"""
         self.statusBar().showMessage(message)
-        self._update_step_progress(step_name, message, result, status)
+        self._update_step_progress(step_name, result, status)
         
-    def _update_step_progress(self, step_name, message, result, status):
+    def _update_step_progress(self, step_name, result, status):
         """更新步骤进度"""
         if status == "started":
             self.progress_bar.setValue(0)
@@ -638,10 +687,12 @@ class StockAnalysisApp(QMainWindow):
                     self.global_result.setText(formatted_result)
                     
         # 获取总股本值
-        shares_text = self.shares_input.text().strip()
+        self.update_settings_display()
+    
+    def update_settings_display(self):
+        """更新设置显示"""
+        shares_text = int(self.shares_input.text().strip())*1000000
         total_shares_display = shares_text if shares_text else "0"
-        
-        # 更新设置显示
         settings_text = f"""
 当前设置:
 股票代码: {self.current_settings['symbol']}
@@ -654,15 +705,28 @@ class StockAnalysisApp(QMainWindow):
 
 def main():
     """主函数"""
+    log.info("🚀 启动股票分析桌面应用...")
+    
     app = QApplication(sys.argv)
     
     # 设置应用样式
     app.setStyle('Fusion')
+    log.info("✅ 应用样式设置完成")
+    
+    # 设置字体，避免使用缺失的 Consolas 字体
+    font = QFont()
+    font.setFamily("SF Pro Display" if sys.platform == "darwin" else "Segoe UI" if sys.platform == "win32" else "DejaVu Sans")
+    font.setPointSize(10)
+    app.setFont(font)
+    log.info("✅ 字体设置完成")
     
     # 创建主窗口
+    log.info("📱 创建主窗口...")
     window = StockAnalysisApp()
     window.show()
+    log.info("✅ 主窗口显示完成")
     
+    log.info("🎯 应用启动完成，进入事件循环")
     # 运行应用
     sys.exit(app.exec())
 

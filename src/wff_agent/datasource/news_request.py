@@ -20,7 +20,7 @@ def get_financial_new_cn(limit: int = 20) -> pd.DataFrame:
     df = df.head(limit)
     return df
 
-def get_news_from_newapi(keywords: List[str], limit: int = 20) -> Dict[str, Any]:
+def get_news_from_newapi(keywords: List[str], limit: int = 20, days: int = 30) -> Dict[str, Any]:
     """
     获取最新的limit条新闻
     :param keyword:
@@ -28,7 +28,7 @@ def get_news_from_newapi(keywords: List[str], limit: int = 20) -> Dict[str, Any]
     :return:
     """
     log.info(f"开始获取新闻: {keywords}, {limit}")
-    date_str = (datetime.now()-timedelta(days=30)).strftime("%Y-%m-%d")
+    date_str = (datetime.now()-timedelta(days=days)).strftime("%Y-%m-%d")
     if len(keywords) > 1:
         keywords_str = ' OR '.join(keywords)
     else:
@@ -58,5 +58,5 @@ def get_news_from_newapi(keywords: List[str], limit: int = 20) -> Dict[str, Any]
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    df = get_news_from_newapi(["美股:TSLA"], 10)
+    df = get_news_from_newapi(["PDD"], 10, 30)
     print(df)
