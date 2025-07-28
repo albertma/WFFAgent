@@ -1,4 +1,4 @@
-__version__ = "0.1.0"
+__version__ = "0.05"
 
 from wff_agent.stock_agents import ComprehensiveAnalysisAgent
 from wff_agent.stock_agents import FundamentalAnalysisAgent

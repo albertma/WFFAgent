@@ -1,6 +1,14 @@
 # Work For Fun Agent (WFF Agent)
 
+[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](https://github.com/your-username/wff_agent)
+[![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+
 一个基于人工智能的股票分析智能助手，提供多维度股票分析和投资决策支持。
+
+**📦 当前版本**: v0.5.0
+**🔄 最新更新**: 2025-07-28
+**📋 更新日志**: [CHANGELOG.md](CHANGELOG.md)
 
 ## 🚀 主要功能
 

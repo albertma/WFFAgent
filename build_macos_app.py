@@ -113,11 +113,11 @@ app = BUNDLE(
     coll,
     name='wff.app',
     icon=None,
-    bundle_identifier='com.wff.stockanalysis',
+    bundle_identifier='com.wff.investmentanalysis',
     info_plist={
         'CFBundleName': 'WFF Stock Analysis',
-        'CFBundleDisplayName': 'WFF 股票分析',
-        'CFBundleIdentifier': 'com.wff.stockanalysis',
+        'CFBundleDisplayName': 'WFF 投资分析',
+        'CFBundleIdentifier': 'com.wff.investmentanalysis',
         'CFBundleVersion': '1.0.0',
         'CFBundleShortVersionString': '1.0.0',
         'NSHighResolutionCapable': True,
@@ -183,10 +183,10 @@ def create_installer():
     
     # 创建 DMG 安装包
     dmg_cmd = [
-        "hdiutil", "create", "-volname", "WFF Stock Analysis",
+        "hdiutil", "create", "-volname", "WFF Investment Analysis",
         "-srcfolder", "dist/wff.app",
         "-ov", "-format", "UDZO",
-        "dist/WFF_Stock_Analysis.dmg"
+        "dist/WFF_Investment_Analysis.dmg"
     ]
     
     try:
@@ -239,7 +239,7 @@ def main():
             print("\n🎉 编译完成！")
             print("=" * 50)
             print("📱 应用位置: dist/wff.app")
-            print("📦 安装包: dist/WFF_Stock_Analysis.dmg")
+            print("📦 安装包: dist/WFF_Investment_Analysis.dmg")
             print("💡 双击 wff.app 即可运行应用")
             
         else:

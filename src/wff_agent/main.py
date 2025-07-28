@@ -1,6 +1,7 @@
 import asyncio
 
 import wff_agent.agent_client
+import wff_agent
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
@@ -16,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 log.addHandler(handler)
 
 if __name__ == "__main__":
-    log.info("开始执行 Agent 工作流")
+    log.info(f"开始执行 Agent 工作流 - 版本 {wff_agent.__version__}")
     try:
         asyncio.run(
             wff_agent.agent_client.main(

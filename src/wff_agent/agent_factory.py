@@ -54,5 +54,12 @@ class AgentFactory:
                 model=llm_model,
                 temperature= 0.1,
                 max_tokens=64096)
+        elif agent_name == "CryptoBTCTechAnalysisAgent":
+            return CryptoBTCTechAnalysisAgent(
+                base_url=llm_base_url,
+                api_key=llm_api_key,
+                model=llm_model,
+                temperature= 0.1,
+                max_tokens=64096)
         else:
             raise ValueError(f"Agent {agent_name} not found")

@@ -244,7 +244,26 @@ def get_stock_financial_report_hk(symbol: str) -> dict:
         "quarter_income_statement": quarter_income_statement_result,
         "quarter_cashflow": quarter_cash_flow_statement_result
     }
-  
+
+def get_macro_data() -> dict:
+    """
+    获取宏观数据
+    """
+    macro_china_ppi_yearly_df = ak.macro_china_ppi_yearly()
+    macro_china_cpi_yearly_df = ak.macro_china_cpi_yearly()
+    macro_china_cx_services_pmi_yearly_df = ak.macro_china_cx_services_pmi_yearly()
+    macro_usa_cpi_monthly_df = ak.macro_usa_cpi_monthly()
+    macro_usa_labor_df = ak.macro_usa_lmci()
+    macro_bank_usa_interest_rate_df = ak.macro_bank_usa_interest_rate()
+    return {
+        "macro_china_ppi_yearly": json.dumps(macro_china_ppi_yearly_df, ensure_ascii=False, orient="records"),
+        "macro_china_cpi_yearly": json.dumps(macro_china_cpi_yearly_df, ensure_ascii=False, orient="records"),
+        "macro_china_cx_services_pmi_yearly": json.dumps(macro_china_cx_services_pmi_yearly_df, ensure_ascii=False, orient="records"),
+        "macro_usa_cpi_monthly": json.dumps(macro_usa_cpi_monthly_df, ensure_ascii=False, orient="records"),
+        "macro_usa_labor": json.dumps(macro_usa_labor_df, ensure_ascii=False, orient="records"),
+        "macro_bank_usa_interest_rate": json.dumps(macro_bank_usa_interest_rate_df, ensure_ascii=False, orient="records"),
+    }
+
       
 def transform_hk_financial_report(df: pd.DataFrame) -> List[Dict[str, Any]]:
     """
@@ -494,7 +513,7 @@ if __name__ == "__main__":
     # print(json.dumps(data, ensure_ascii=False))
     
     #print(stock_financial_hk_report_em_df.head(5).to_json(force_ascii=False, orient="records"))
-    data = get_usa_interest_rate()
+    data = get_macro_data()
     print(data)
 
    

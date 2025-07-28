@@ -21,9 +21,19 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 log.addHandler(handler)
 # 环境变量
+async def run_crypto_agent(symbol: str, progress_callback: Optional[Callable] = None):
+    """运行加密货币 agent
+    
+    Args:
+        symbol (str): 加密货币代码
+        progress_callback (Optional[Callable]): 进度回调函数
+    Returns:
+        Dict[str, Any]: 分析结果
+    """
+    pass
+    
 
-
-async def run_agent(symbol: str, market: str, discount_rate: float, 
+async def run_stock_agent(symbol: str, market: str, discount_rate: float, 
                     growth_rate: float, total_shares: int=0, agent_names: list=[],
                     progress_callback: Optional[Callable] = None):
     """运行 agent
@@ -85,7 +95,7 @@ async def main(symbol: str, market: str, discount_rate: float, growth_rate: floa
     
     try:
         log.info(f"开始执行 Agent 分析: {symbol}, {market}, {discount_rate}, {growth_rate}, {total_shares}")
-        result = await run_agent(symbol, market, discount_rate, growth_rate, total_shares, agent_names, progress_callback)
+        result = await run_stock_agent(symbol, market, discount_rate, growth_rate, total_shares, agent_names, progress_callback)
         log.info(f"Agent 执行结果: \n{result}")
         return result
     except Exception as e:
